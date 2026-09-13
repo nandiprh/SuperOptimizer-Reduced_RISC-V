@@ -1,0 +1,55 @@
+foreground #00ff00
+
+font_size 12.0
+
+cursor_trail 3
+cursor_trail_decay 0.1 0.4
+
+window_padding_width 14
+background_opacity 0.90
+background_blur 1
+
+hide_window_decorations yes
+tab_bar_style powerline
+tab_powerline_style angled
+mouse_hide_wait 2.0
+open_url_with default
+url_prefixes http https file ftp
+click_window_test_modifier ctrl
+repaint_delay 10
+input_delay 3
+sync_to_monitor yes
+scrollback_lines 10000
+
+map ctrl+shift+h show_scrollback
+map ctrl+shift+d launch --type=os-window kitten diff
+
+# BEGIN_KITTY_THEME
+# Tokyo Night
+#include current-theme.conf
+# END_KITTY_THEME
+#
+bold_font        JetBrains Mono Bold
+italic_font      JetBrains Mono Italic
+bold_italic_font JetBrains Mono Bold Italic
+font_size        11.0
+
+repaint_delay    10
+input_delay      3
+sync_to_monitor  yes
+#text_composition_strategy legacy
+adjust_line_height  0
+adjust_column_width 0
+#text_contrast    0.5
+# Forces the terminal grid to tighten up and strips out the wide gaps
+modify_font cell_width -5px
+
+# Directs all icon ranges to look into your standalone symbols font
+# without bloating or corrupting your regular text characters.
+
+# Pua (Private Use Area) & Main Icon Blocks
+symbol_map U+E000-U+E00D,U+E010-U+E01A,U+E020-U+E03E,U+E040-U+E05C,U+E060-U+E06E,U+E070-U+E07B,U+E080-U+E08F,U+E090-U+E099,U+E0A0-U+E0A3,U+E0B0-U+E0C8,U+E0CA,U+E0CC-U+E0D7,U+E0E0-U+E0EC,U+E0F0-U+E0F4,U+E100-U+E16C,U+E200-U+E2A9,U+E300-U+E3E3,U+E5FA-U+E6B1,U+E700-U+E7C5,U+ED00-U+EFCD,U+F000-U+F2E0,U+F300-U+F372,U+F400-U+F533,U+F0001-U+F1AF0 Symbols Nerd Font Mono
+
+# Devicons, Octicons, Font Awesome & Misc Technical Symbols
+symbol_map U+23FB-U+23FE,U+2B58,U+2630-U+2637,U+2665,U+26A1,U+2764 Symbols Nerd Font Mono
+
