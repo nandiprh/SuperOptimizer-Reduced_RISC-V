@@ -9,7 +9,15 @@
     "margin-bottom": 0,
     "exclusive": true,
     "modules-left": [
-        "custom/mango_tags"
+        "custom/mango_tags1",
+        "custom/mango_tags2",
+        "custom/mango_tags3",
+        "custom/mango_tags4",
+        "custom/mango_tags5",
+        "custom/mango_tags6",
+        "custom/mango_tags7",
+        "custom/mango_tags8",
+        "custom/mango_tags9"
     ],
     "modules-center": [
         "custom/mango_focused"
@@ -24,9 +32,57 @@
         "battery",
         "clock"
     ],
-    "custom/mango_tags": {
+    "custom/mango_tags1": {
         "format": "{}",
-        "exec": "/home/honken/.config/waybar/scripts/mangobar tags",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 1",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_tags2": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 2",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_tags3": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 3",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_tags4": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 4",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_tags5": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 5",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_tags6": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 6",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_tags7": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 7",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_tags8": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 8",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_tags9": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tag 9",
         "return-type": "json",
         "tooltip": true
     },

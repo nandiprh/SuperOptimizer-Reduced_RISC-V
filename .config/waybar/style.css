@@ -21,36 +21,98 @@ window#waybar {
         0 6px 18px rgba(0, 8, 24, 0.35);
 }
 
-#custom-mango_tags {
-    margin: 4px 2px;
-    padding: 0 12px;
-    border-radius: 9px;
-    background: linear-gradient(
-        to bottom,
-        rgba(90, 190, 255, 0.30),
-        rgba(40, 100, 190, 0.16)
-    );
-    border: 1px solid rgba(120, 215, 255, 0.45);
-    letter-spacing: 1px;
+#custom-mango-tags1,
+#custom-mango-tags2,
+#custom-mango-tags3,
+#custom-mango-tags4,
+#custom-mango-tags5,
+#custom-mango-tags6,
+#custom-mango-tags7,
+#custom-mango-tags8,
+#custom-mango-tags9 {
+    margin: 5px 3px;
+    min-width: 20px;
+    min-height: 20px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(140, 175, 235, 0.12);
+    border: 1px solid rgba(160, 210, 255, 0.22);
+    color: rgba(235, 243, 255, 0.6);
+    transition: all 0.2s ease;
 }
 
-#custom-mango_tags.active {
-    background: linear-gradient(
-        to bottom,
-        rgba(255, 92, 104, 0.60),
-        rgba(200, 40, 70, 0.32)
-    );
-    border-color: rgba(255, 130, 140, 0.85);
-    box-shadow: inset 0 0 12px rgba(255, 92, 104, 0.50);
+#custom-mango-tags1:hover,
+#custom-mango-tags2:hover,
+#custom-mango-tags3:hover,
+#custom-mango-tags4:hover,
+#custom-mango-tags5:hover,
+#custom-mango-tags6:hover,
+#custom-mango-tags7:hover,
+#custom-mango-tags8:hover,
+#custom-mango-tags9:hover {
+    background: rgba(140, 200, 255, 0.25);
+    border-color: rgba(160, 215, 255, 0.5);
+    color: #eef4ff;
 }
 
-#custom-mango_tags.urgent {
+#custom-mango-tags1.occupied,
+#custom-mango-tags2.occupied,
+#custom-mango-tags3.occupied,
+#custom-mango-tags4.occupied,
+#custom-mango-tags5.occupied,
+#custom-mango-tags6.occupied,
+#custom-mango-tags7.occupied,
+#custom-mango-tags8.occupied,
+#custom-mango-tags9.occupied {
+    background: rgba(140, 175, 235, 0.24);
+    border-color: rgba(160, 210, 255, 0.42);
+    color: #eef4ff;
+}
+
+#custom-mango-tags1.active,
+#custom-mango-tags2.active,
+#custom-mango-tags3.active,
+#custom-mango-tags4.active,
+#custom-mango-tags5.active,
+#custom-mango-tags6.active,
+#custom-mango-tags7.active,
+#custom-mango-tags8.active,
+#custom-mango-tags9.active {
     background: linear-gradient(
         to bottom,
-        rgba(255, 107, 138, 0.55),
-        rgba(200, 40, 80, 0.30)
+        rgba(110, 195, 255, 0.65),
+        rgba(45, 105, 195, 0.45)
     );
-    border-color: rgba(255, 160, 180, 0.8);
+    border-color: rgba(185, 230, 255, 0.95);
+    color: #ffffff;
+    box-shadow:
+        0 0 10px 2px rgba(110, 195, 255, 0.55),
+        0 0 3px 0 rgba(170, 225, 255, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    text-shadow: 0 0 6px rgba(205, 240, 255, 0.9);
+}
+
+#custom-mango-tags1.urgent,
+#custom-mango-tags2.urgent,
+#custom-mango-tags3.urgent,
+#custom-mango-tags4.urgent,
+#custom-mango-tags5.urgent,
+#custom-mango-tags6.urgent,
+#custom-mango-tags7.urgent,
+#custom-mango-tags8.urgent,
+#custom-mango-tags9.urgent {
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 110, 130, 0.55),
+        rgba(200, 45, 75, 0.35)
+    );
+    border-color: rgba(255, 160, 180, 0.85);
+    color: #ffffff;
+    box-shadow:
+        0 0 10px 2px rgba(255, 110, 130, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 #custom-mango_focused {

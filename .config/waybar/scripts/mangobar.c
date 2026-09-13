@@ -462,6 +462,67 @@ static void run_tags(void) {
     }
 }
 
+/*
+ * Emit a single workspace (tag) as its own waybar module so each one
+ * can be styled as an individual button/circle.
+ */
+static void run_one_tag(int which) {
+    int fd = -1;
+    reconnect_loop(&fd);
+    send_cmd(fd, "watch all-tags");
+    for (;;) {
+        char *line = read_line(fd);
+        if (!line) { close(fd); reconnect_loop(&fd); send_cmd(fd, "watch all-tags"); continue; }
+        JNode *root = json_parse(line);
+        free(line);
+        JNode *all = jobj_get(root, "all_tags");
+        JNode *entry = NULL;
+        if (all && all->t == J_ARR) {
+            for (size_t i = 0; i < all->na; i++) {
+                JNode *e = all->arr[i];
+                JNode *tags = jobj_get(e, "tags");
+                int has_active = 0;
+                if (tags && tags->t == J_ARR)
+                    for (size_t j = 0; j < tags->na; j++)
+                        if (jbool(jobj_get(tags->arr[j], "is_active"), 0))
+                            has_active = 1;
+                if (has_active) { entry = e; break; }
+            }
+            if (!entry && all->na > 0) entry = all->arr[0];
+        }
+        JNode *tags = entry ? jobj_get(entry, "tags") : NULL;
+        if (tags && tags->t == J_ARR && tags->na > 0) {
+            int found = 0;
+            char num[16] = {0};
+            int active = 0, urgent = 0, count = 0;
+            for (size_t j = 0; j < tags->na; j++) {
+                JNode *t = tags->arr[j];
+                int idx = jint(jobj_get(t, "index"), (int)j + 1);
+                if (idx == which) {
+                    found = 1;
+                    active = jbool(jobj_get(t, "is_active"), 0);
+                    urgent = jbool(jobj_get(t, "is_urgent"), 0);
+                    count = jint(jobj_get(t, "client_count"), 0);
+                    snprintf(num, sizeof(num), "%d", idx);
+                    break;
+                }
+            }
+            if (found) {
+                const char *cls = active ? "active"
+                                 : urgent ? "urgent"
+                                 : (count > 0 ? "occupied" : "idle");
+                char tooltip[128];
+                snprintf(tooltip, sizeof(tooltip), "workspace %d%s", which,
+                         active ? " (focused)" : urgent ? " (urgent)" : "");
+                emit(num, cls, cls, tooltip);
+            } else {
+                emit("", "idle", "idle", "");
+            }
+        }
+        jfree(root);
+    }
+}
+
 /* ---------------- focused window ---------------- */
 
 static void run_focused(void) {
@@ -497,7 +558,7 @@ static void run_focused(void) {
 }
 
 static void usage(void) {
-    fprintf(stderr, "usage: mangobar <tags|focused> [-n]\n");
+    fprintf(stderr, "usage: mangobar <tags|focused|tag N> [-n]\n");
     exit(1);
 }
 
@@ -506,6 +567,8 @@ int main(int argc, char **argv) {
     const char *mode = argv[1];
     if (strcmp(mode, "tags") == 0) run_tags();
     else if (strcmp(mode, "focused") == 0) run_focused();
+    else if (strcmp(mode, "tag") == 0 && argc >= 3)
+        run_one_tag(atoi(argv[2]));
     else usage();
     return 0;
 }
