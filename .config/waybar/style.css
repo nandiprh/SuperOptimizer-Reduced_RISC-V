@@ -6,10 +6,10 @@
 }
 
 window#waybar {
-    background: #1a1b26;
-    color: #c0caf5;
+    background: #282A2E;
+    color: #C5C8C6;
     border: none;
-    border-radius: 0;
+    border-radius: 6px;
     box-shadow: none;
 }
 
@@ -22,30 +22,17 @@ window#waybar {
 #custom-mango-tags7,
 #custom-mango-tags8,
 #custom-mango-tags9 {
-    margin: 0 2px;
+    margin: 0 1px;
     min-width: 18px;
     min-height: 18px;
     padding: 0;
     border-radius: 3px;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
-    background: #2a2c3d;
-    color: #565f77;
-    border: 1px solid #3a3d52;
+    background: transparent;
+    color: #707880;
+    border: none;
     transition: all 0.15s ease;
-}
-
-#custom-mango-tags1:hover,
-#custom-mango-tags2:hover,
-#custom-mango-tags3:hover,
-#custom-mango-tags4:hover,
-#custom-mango-tags5:hover,
-#custom-mango-tags6:hover,
-#custom-mango-tags7:hover,
-#custom-mango-tags8:hover,
-#custom-mango-tags9:hover {
-    background: #3a3f58;
-    color: #a9b1d6;
 }
 
 #custom-mango-tags1.occupied,
@@ -57,9 +44,7 @@ window#waybar {
 #custom-mango-tags7.occupied,
 #custom-mango-tags8.occupied,
 #custom-mango-tags9.occupied {
-    background: #2f314a;
-    color: #7dcfff;
-    border-color: #4a5270;
+    color: #C5C8C6;
 }
 
 #custom-mango-tags1.active,
@@ -71,10 +56,9 @@ window#waybar {
 #custom-mango-tags7.active,
 #custom-mango-tags8.active,
 #custom-mango-tags9.active {
-    background: #7aa2f7;
-    color: #1a1b26;
-    border-color: #89b4ff;
-    text-shadow: none;
+    background: #373B41;
+    color: #C5C8C6;
+    box-shadow: inset 0 -2px 0 #F0C674;
 }
 
 #custom-mango-tags1.urgent,
@@ -86,26 +70,34 @@ window#waybar {
 #custom-mango-tags7.urgent,
 #custom-mango-tags8.urgent,
 #custom-mango-tags9.urgent {
-    background: #f7768e;
-    color: #1a1b26;
-    border-color: #ff87a0;
+    background: #A54242;
+    color: #C5C8C6;
 }
 
 #custom-mango_focused {
     margin: 0 4px;
-    padding: 0 14px;
+    padding: 0 10px;
     border-radius: 3px;
-    color: #a9b1d6;
+    color: #C5C8C6;
     font-weight: 500;
-    background: #2a2c3d;
-    border: 1px solid #3a3d52;
-    transition: all 0.15s ease;
+    background: transparent;
+    border: none;
 }
 
-#custom-mango_focused.active {
-    background: #2f314a;
-    color: #c0caf5;
-    border-color: #4a5270;
+#custom-sep1,
+#custom-sep2,
+#custom-sep3,
+#custom-sep4,
+#custom-sep5,
+#custom-sep6,
+#custom-sep7,
+#custom-sep8,
+#custom-sep {
+    color: #707880;
+    margin: 0 2px;
+    padding: 0;
+    min-width: 0;
+    font-weight: 500;
 }
 
 #cpu,
@@ -116,12 +108,11 @@ window#waybar {
 #pulseaudio,
 #battery,
 #clock {
-    background: #2a2c3d;
-    color: #a9b1d6;
-    padding: 0 10px;
-    margin: 0 2px;
-    border-radius: 3px;
-    border: 1px solid #3a3d52;
+    background: transparent;
+    color: #C5C8C6;
+    padding: 0 8px;
+    margin: 0 1px;
+    border: none;
     transition: all 0.15s ease;
 }
 
@@ -133,76 +124,67 @@ window#waybar {
 #pulseaudio:hover,
 #battery:hover,
 #clock:hover {
-    background: #31344a;
-    color: #c0caf5;
+    background: #373B41;
 }
 
 #cpu.warning,
 #memory.warning,
 #battery.warning {
-    color: #e0af68;
+    color: #F0C674;
 }
 
 #cpu.critical,
 #memory.critical,
 #battery.critical {
-    color: #f7768e;
+    color: #A54242;
     animation: blink 1s ease-in-out infinite;
 }
 
 #pulseaudio.muted {
-    color: #565f77;
+    color: #707880;
 }
 
 #battery.charging {
-    color: #9ece6a;
+    color: #8ABEB7;
 }
 
 #custom-net.disconnected {
-    color: #f7768e;
+    color: #A54242;
 }
 
 #custom-net.wifi {
-    color: #7dcfff;
+    color: #C5C8C6;
 }
 
 #custom-net.ethernet {
-    color: #9ece6a;
+    color: #C5C8C6;
 }
 
 #custom-notify {
-    background: #2a2c3d;
-    color: #e0af68;
-    border-color: #3a3d52;
+    color: #F0C674;
 }
 
 #custom-tuned {
-    background: #2a2c3d;
-    color: #9ece6a;
-    border-color: #3a3d52;
+    color: #8ABEB7;
 }
 
 #custom-tuned.active {
-    background: #2a3d2c;
-    color: #9ece6a;
-    border-color: #3a5240;
+    color: #8ABEB7;
 }
 
 #custom-tuned.inactive {
-    background: #3d2a2a;
-    color: #e0af68;
-    border-color: #523a3a;
+    color: #F0C674;
 }
 
 tooltip {
-    background: rgba(26, 27, 38, 0.95);
-    border: 1px solid #3a3d52;
+    background: rgba(40, 42, 46, 0.95);
+    border: 1px solid #373B41;
     border-radius: 4px;
-    color: #c0caf5;
+    color: #C5C8C6;
 }
 
 tooltip label {
-    color: #c0caf5;
+    color: #C5C8C6;
 }
 
 @keyframes blink {

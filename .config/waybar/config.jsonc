@@ -10,26 +10,42 @@
     "exclusive": true,
     "modules-left": [
         "custom/mango_tags1",
+        "custom/sep1",
         "custom/mango_tags2",
+        "custom/sep2",
         "custom/mango_tags3",
+        "custom/sep3",
         "custom/mango_tags4",
+        "custom/sep4",
         "custom/mango_tags5",
+        "custom/sep5",
         "custom/mango_tags6",
+        "custom/sep6",
         "custom/mango_tags7",
+        "custom/sep7",
         "custom/mango_tags8",
+        "custom/sep8",
         "custom/mango_tags9"
     ],
     "modules-center": [
         "custom/mango_focused"
     ],
     "modules-right": [
+        "custom/sep",
         "cpu",
+        "custom/sep",
         "memory",
+        "custom/sep",
         "custom/net",
+        "custom/sep",
         "custom/tuned",
+        "custom/sep",
         "custom/notify",
+        "custom/sep",
         "pulseaudio",
+        "custom/sep",
         "battery",
+        "custom/sep",
         "clock"
     ],
     "custom/mango_tags1": {
@@ -92,6 +108,42 @@
         "return-type": "json",
         "tooltip": true
     },
+    "custom/sep1": {
+        "format": "|",
+        "color": "#707880"
+    },
+    "custom/sep2": {
+        "format": "|",
+        "color": "#707880"
+    },
+    "custom/sep3": {
+        "format": "|",
+        "color": "#707880"
+    },
+    "custom/sep4": {
+        "format": "|",
+        "color": "#707880"
+    },
+    "custom/sep5": {
+        "format": "|",
+        "color": "#707880"
+    },
+    "custom/sep6": {
+        "format": "|",
+        "color": "#707880"
+    },
+    "custom/sep7": {
+        "format": "|",
+        "color": "#707880"
+    },
+    "custom/sep8": {
+        "format": "|",
+        "color": "#707880"
+    },
+    "custom/sep": {
+        "format": "|",
+        "color": "#707880"
+    },
     "custom/net": {
         "format": "{}",
         "exec": "/home/honken/.config/waybar/scripts/net_status.sh",
@@ -115,18 +167,18 @@
         "tooltip": true
     },
     "cpu": {
-        "format": "\uF0E4 {usage}%",
+        "format": "<span color='#F0C674'>CPU</span> {usage}%",
         "tooltip-format": "CPU {usage}%",
         "interval": 2
     },
     "memory": {
-        "format": "\uF2DB {}%",
+        "format": "<span color='#F0C674'>RAM</span> {}%",
         "tooltip-format": "MEM {percentage}%  {used} / {total}",
         "interval": 2
     },
     "pulseaudio": {
-        "format": "{icon} {volume}%",
-        "format-muted": "\uF010 {volume}%",
+        "format": "<span color='#F0C674'>VOL</span> {volume}%",
+        "format-muted": "<span color='#707880'>MUTED</span>",
         "format-icons": {
             "headphone": "\uF025",
             "hands-free": "\uF025",
@@ -151,8 +203,8 @@
         "interval": 30
     },
     "clock": {
-        "format": "\uF017 {:%H:%M}",
-        "format-alt": "\uF017 {:%Y-%m-%d %H:%M:%S}",
+        "format": "<span color='#F0C674'>DATE</span> {:%H:%M}",
+        "format-alt": "<span color='#F0C674'>DATE</span> {:%Y-%m-%d %H:%M:%S}",
         "tooltip-format": "{:%A, %d %B %Y}",
         "interval": 1
     }
