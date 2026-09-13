@@ -10,7 +10,7 @@
     "exclusive": true,
     "modules-left": [
         "custom/notify",
-        "custom/sep",
+        "custom/spacer",
         "custom/mango_tags1",
         "custom/sep1",
         "custom/mango_tags2",
@@ -40,7 +40,6 @@
         "custom/net",
         "custom/sep",
         "custom/tuned",
-        "custom/sep",
         "pulseaudio",
         "custom/sep",
         "battery",
@@ -143,6 +142,9 @@
         "format": "|",
         "color": "#707880"
     },
+    "custom/spacer": {
+        "format": "  "
+    },
     "custom/net": {
         "format": "{}",
         "exec": "/home/honken/.config/waybar/scripts/net_status.sh",
@@ -195,15 +197,14 @@
             "warning": 30,
             "critical": 15
         },
-        "format": "{capacity}% {icon}",
-        "format-icons": ["\uF244", "\uF243", "\uF242", "\uF241", "\uF240"],
-        "format-charging": "{capacity}% \uF0E7",
-        "format-plugged": "{capacity}% \uF0E7",
+        "format": "{capacity}%",
+        "format-charging": "{capacity}%",
+        "format-plugged": "{capacity}%",
         "interval": 30
     },
     "clock": {
-        "format": "<span color='#F0C674'>DATE</span> {:%H:%M}",
-        "format-alt": "<span color='#F0C674'>DATE</span> {:%Y-%m-%d %H:%M:%S}",
+        "format": "<span color='#F0C674'>TIME</span> {:%H:%M}",
+        "format-alt": "<span color='#F0C674'>TIME</span> {:%Y-%m-%d %H:%M:%S}",
         "tooltip-format": "{:%A, %d %B %Y}",
         "interval": 1
     }

@@ -534,37 +534,49 @@ static void run_one_tag(int which) {
     }
 }
 
-/* ---------------- focused window ---------------- */
+/* ---------------- focused workspace ---------------- */
 
 static void run_focused(void) {
     int fd = -1;
     reconnect_loop(&fd);
-    send_cmd(fd, "watch focusing-client");
+    send_cmd(fd, "watch all-tags");
     for (;;) {
         char *line = read_line(fd);
-        if (!line) { close(fd); reconnect_loop(&fd); send_cmd(fd, "watch focusing-client"); continue; }
+        if (!line) { close(fd); reconnect_loop(&fd); send_cmd(fd, "watch all-tags"); continue; }
         JNode *root = json_parse(line);
         free(line);
-        JNode *id = jobj_get(root, "id");
-        if (id && id->t != J_NULL) {
-            const char *title = jstr(jobj_get(root, "title"));
-            const char *appid = jstr(jobj_get(root, "appid"));
-            char text[256] = {0};
-            if (title && title[0]) {
-                snprintf(text, sizeof(text), "%.240s", title);
-            } else if (appid && appid[0]) {
-                snprintf(text, sizeof(text), "%.240s", appid);
-            } else {
-                snprintf(text, sizeof(text), "—");
+        JNode *all = jobj_get(root, "all_tags");
+        JNode *entry = NULL;
+        if (all && all->t == J_ARR) {
+            for (size_t i = 0; i < all->na; i++) {
+                JNode *e = all->arr[i];
+                JNode *tags = jobj_get(e, "tags");
+                int has_active = 0;
+                if (tags && tags->t == J_ARR)
+                    for (size_t j = 0; j < tags->na; j++)
+                        if (jbool(jobj_get(tags->arr[j], "is_active"), 0))
+                            has_active = 1;
+                if (has_active) { entry = e; break; }
             }
-            char tooltip[512] = {0};
-            snprintf(tooltip, sizeof(tooltip), "%s\n%s",
-                     appid ? appid : "", title ? title : "");
-            emit(text, "window-active", "window", tooltip);
-        } else {
-            emit("", "window-idle", "window", "");
+            if (!entry && all->na > 0) entry = all->arr[0];
         }
+        JNode *tags = entry ? jobj_get(entry, "tags") : NULL;
+        if (tags && tags->t == J_ARR && tags->na > 0) {
+            for (size_t j = 0; j < tags->na; j++) {
+                JNode *t = tags->arr[j];
+                if (jbool(jobj_get(t, "is_active"), 0)) {
+                    int idx = jint(jobj_get(t, "index"), (int)j + 1);
+                    char text[64];
+                    snprintf(text, sizeof(text), "%s", to_roman(idx));
+                    emit(text, "ws-active", "ws-active", "");
+                    jfree(root);
+                    goto outer;
+                }
+            }
+        }
+        emit("", "ws-idle", "ws-idle", "");
         jfree(root);
+        outer:;
     }
 }
 
