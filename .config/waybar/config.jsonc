@@ -197,9 +197,9 @@
             "warning": 30,
             "critical": 15
         },
-        "format": "{capacity}%",
-        "format-charging": "{capacity}%",
-        "format-plugged": "{capacity}%",
+        "format": "<span color='#F0C674'>BAT</span> {capacity}%",
+        "format-charging": "<span color='#F0C674'>BAT</span> {capacity}%",
+        "format-plugged": "<span color='#F0C674'>BAT</span> {capacity}%",
         "interval": 30
     },
     "clock": {
