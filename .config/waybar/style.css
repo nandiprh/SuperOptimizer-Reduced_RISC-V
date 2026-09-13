@@ -1,16 +1,16 @@
 * {
     font-family: "JetBrains Mono Nerd Font", "FiraCode Nerd Font", "DejaVu Sans Mono", monospace;
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 500;
     min-height: 0;
 }
 
 window#waybar {
-    background: linear-gradient(180deg, #2c2e3a 0%, #282A2E 100%);
+    background: #282A2E;
     color: #C5C8C6;
-    border: 1px solid #3a3d52;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 #custom-mango-tags1,
@@ -27,7 +27,7 @@ window#waybar {
     min-height: 18px;
     padding: 0;
     border-radius: 3px;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 600;
     background: transparent;
     color: #707880;
