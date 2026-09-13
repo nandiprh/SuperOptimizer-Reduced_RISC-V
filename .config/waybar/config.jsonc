@@ -1,0 +1,103 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 6,
+    "margin-top": 10,
+    "margin-left": 10,
+    "margin-right": 10,
+    "margin-bottom": 0,
+    "exclusive": true,
+    "modules-left": [
+        "custom/mango_tags"
+    ],
+    "modules-center": [
+        "custom/mango_focused"
+    ],
+    "modules-right": [
+        "cpu",
+        "memory",
+        "custom/net",
+        "custom/tuned",
+        "custom/notify",
+        "pulseaudio",
+        "battery",
+        "clock"
+    ],
+    "custom/mango_tags": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar tags",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/mango_focused": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/mangobar focused",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/net": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/net_status.sh",
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/tuned": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/tuned_status.sh",
+        "return-type": "json",
+        "signal": 8,
+        "on-click": "/home/honken/.config/waybar/scripts/tuned_toggle.sh",
+        "tooltip": true
+    },
+    "custom/notify": {
+        "format": "{}",
+        "exec": "swaync-client -swb",
+        "return-type": "json",
+        "on-click": "swaync-client -t",
+        "on-click-right": "swaync-client -d",
+        "tooltip": true
+    },
+    "cpu": {
+        "format": "\uF0E4 {usage}%",
+        "tooltip-format": "CPU {usage}%",
+        "interval": 2
+    },
+    "memory": {
+        "format": "\uF2DB {}%",
+        "tooltip-format": "MEM {percentage}%  {used} / {total}",
+        "interval": 2
+    },
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "\uF010 {volume}%",
+        "format-icons": {
+            "headphone": "\uF025",
+            "hands-free": "\uF025",
+            "headset": "\uF025",
+            "phone": "\uF095",
+            "portable": "\uF025",
+            "car": "\uF1B9",
+            "default": ["\uF026", "\uF027", "\uF028"]
+        },
+        "on-click": "pavucontrol",
+        "scroll-step": 5
+    },
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{capacity}% {icon}",
+        "format-icons": ["\uF244", "\uF243", "\uF242", "\uF241", "\uF240"],
+        "format-charging": "{capacity}% \uF0E7",
+        "format-plugged": "{capacity}% \uF0E7",
+        "interval": 30
+    },
+    "clock": {
+        "format": "\uF017 {:%H:%M}",
+        "format-alt": "\uF017 {:%Y-%m-%d %H:%M:%S}",
+        "tooltip-format": "{:%A, %d %B %Y}",
+        "interval": 1
+    }
+}
