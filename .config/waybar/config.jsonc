@@ -1,11 +1,11 @@
 {
 "layer": "top",
     "position": "top",
-    "width": 1745,
+    "width": 1600,
     "height": 30,
     "margin-top": 6,
-    "margin-left": 10,
-    "margin-right": 10,
+    "margin-left": 15,
+    "margin-right": 15,
     "margin-bottom": 0,
     "exclusive": true,
     "modules-left": [
