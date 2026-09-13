@@ -12,10 +12,10 @@ while true; do
 		ssid=${info%%$'\x01'*}
 		sig=${info##*$'\x01'}
 		[ -z "$sig" ] && sig=0
-		printf '{"text":"<span color='"'"'#F0C674'"'"'>WIFI</span> %s %s%%","class":"wifi","alt":"wifi","tooltip":"Wi-Fi %s\\nSignal %s%%"}\n' \
-			"$ssid" "$sig" "$ssid" "$sig"
+		printf '{"text":"<span color='"'"'#F0C674'"'"'>WIFI</span>","class":"wifi","alt":"wifi","tooltip":"Wi-Fi %s\\nSignal %s%%"}\n' \
+			"$ssid" "$sig"
 	elif [ -n "$eth_dev" ]; then
-		printf '{"text":"<span color='"'"'#F0C674'"'"'>ETH</span> wired","class":"ethernet","alt":"ethernet","tooltip":"Wired connection"}\n'
+		printf '{"text":"<span color='"'"'#F0C674'"'"'>ETH</span>","class":"ethernet","alt":"ethernet","tooltip":"Wired connection"}\n'
 	else
 		printf '{"text":"<span color='"'"'#A54242'"'"'>OFFLINE</span>","class":"disconnected","alt":"disconnected","tooltip":"No network connection"}\n'
 	fi

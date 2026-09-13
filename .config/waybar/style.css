@@ -27,7 +27,7 @@ window#waybar {
     min-width: 22px;
     min-height: 18px;
     padding: 0;
-    border-radius: 3px;
+    border-radius: 0;
     font-size: 14px;
     font-weight: 600;
     background: #282A2E;
@@ -77,12 +77,12 @@ window#waybar {
 }
 
 #custom-mango_focused {
-    margin: 0 12px;
+    margin: 0;
     padding: 0 14px;
-    border-radius: 3px;
+    border-radius: 0;
     color: #C5C8C6;
     font-weight: 500;
-    background: #373B41;
+    background: #282A2E;
     border: none;
     letter-spacing: 0.5px;
 }
@@ -100,8 +100,7 @@ window#waybar {
     margin: 0 6px;
     padding: 0 8px;
     font-weight: 600;
-    background: rgba(240, 198, 116, 0.08);
-    border-radius: 4px;
+    background: #282A2E;
 }
 
 #custom-spacer {
@@ -121,7 +120,7 @@ window#waybar {
 #custom-sep8,
 #custom-sep {
     color: #707880;
-    margin: 0 2px;
+    margin: 0;
     padding: 0;
     min-width: 0;
     font-weight: 500;
@@ -134,12 +133,12 @@ window#waybar {
 #pulseaudio,
 #battery,
 #clock {
-    background: #373B41;
+    background: #282A2E;
     color: #C5C8C6;
     padding: 0 8px;
-    margin: 0 1px;
+    margin: 0;
     border: none;
-    border-radius: 4px;
+    border-radius: 0;
     transition: all 0.15s ease;
 }
 
