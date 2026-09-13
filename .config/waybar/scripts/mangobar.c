@@ -20,6 +20,17 @@
 #include <unistd.h>
 
 /* ---------------- minimal JSON ---------------- */
+static const char *to_roman(int n) {
+    static const char *romans[] = {
+        "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+        "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
+        "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX", "XXX",
+        "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", "XXXVI", "XXXVII", "XXXVIII", "XXXIX", "XL",
+        "XLI", "XLII", "XLIII", "XLIV", "XLV", "XLVI", "XLVII", "XLVIII", "XLIX", "L"
+    };
+    if (n < 1 || n > 50) return "";
+    return romans[n - 1];
+}
 
 typedef enum { J_NULL, J_BOOL, J_NUM, J_STR, J_ARR, J_OBJ } JType;
 
@@ -503,7 +514,7 @@ static void run_one_tag(int which) {
                     active = jbool(jobj_get(t, "is_active"), 0);
                     urgent = jbool(jobj_get(t, "is_urgent"), 0);
                     count = jint(jobj_get(t, "client_count"), 0);
-                    snprintf(num, sizeof(num), "%d", idx);
+                    snprintf(num, sizeof(num), "%.10s", to_roman(idx));
                     break;
                 }
             }
@@ -512,7 +523,7 @@ static void run_one_tag(int which) {
                                  : urgent ? "urgent"
                                  : (count > 0 ? "occupied" : "idle");
                 char tooltip[128];
-                snprintf(tooltip, sizeof(tooltip), "workspace %d%s", which,
+                snprintf(tooltip, sizeof(tooltip), "workspace %s%s", to_roman(which),
                          active ? " (focused)" : urgent ? " (urgent)" : "");
                 emit(num, cls, cls, tooltip);
             } else {

@@ -9,8 +9,8 @@ window#waybar {
     background: #282A2E;
     color: #C5C8C6;
     border: none;
-    border-radius: 6px;
-    box-shadow: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 #custom-mango-tags1,
@@ -75,30 +75,24 @@ window#waybar {
 }
 
 #custom-mango_focused {
-    margin: 0 4px;
-    padding: 0 10px;
+    margin: 0 8px;
+    padding: 0 12px;
     border-radius: 3px;
-    color: #C5C8C6;
-    font-weight: 500;
+    color: #F0C674;
+    font-weight: 600;
     background: transparent;
     border: none;
+    letter-spacing: 0.5px;
+}
+
+#custom-notify {
+    color: #F0C674;
+    margin: 0 4px;
+    padding: 0 8px;
+    font-weight: 600;
 }
 
 #custom-sep1,
-#custom-sep2,
-#custom-sep3,
-#custom-sep4,
-#custom-sep5,
-#custom-sep6,
-#custom-sep7,
-#custom-sep8,
-#custom-sep {
-    color: #707880;
-    margin: 0 2px;
-    padding: 0;
-    min-width: 0;
-    font-weight: 500;
-}
 
 #cpu,
 #memory,
@@ -158,10 +152,6 @@ window#waybar {
 
 #custom-net.ethernet {
     color: #C5C8C6;
-}
-
-#custom-notify {
-    color: #F0C674;
 }
 
 #custom-tuned {
