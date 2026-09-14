@@ -2,10 +2,10 @@
 "layer": "top",
     "position": "top",
     "width": 1900,
-    "height": 35,
+    "height": 40,
     "margin-top": 6,
     "margin-left": 7,
-    "margin-right": 3,
+    "margin-right": 5,
     "margin-bottom": 0,
     "exclusive": true,
     "modules-left": [

@@ -1,6 +1,6 @@
 * {
     font-family: "JetBrains Mono Nerd Font", "FiraCode Nerd Font", "DejaVu Sans Mono", monospace;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     min-height: 0;
 }
@@ -28,7 +28,7 @@ window#waybar {
     min-height: 22px;
     padding: 0;
     border-radius: 0;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 600;
     background: #232A2E;
     color: #7A8478;
