@@ -1,113 +1,115 @@
 * {
     font-family: "JetBrains Mono Nerd Font", "FiraCode Nerd Font", "DejaVu Sans Mono", monospace;
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 500;
     min-height: 0;
 }
 
 window#waybar {
-    background: #282A2E;
-    color: #C5C8C6;
+    background: #232A2E;
+    color: #D3C6AA;
     border: none;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     opacity: 1;
 }
 
-#custom-mango_tags1,
-#custom-mango_tags2,
-#custom-mango_tags3,
-#custom-mango_tags4,
-#custom-mango_tags5,
-#custom-mango_tags6,
-#custom-mango_tags7,
-#custom-mango_tags8,
-#custom-mango_tags9 {
+#custom-mango-tags1,
+#custom-mango-tags2,
+#custom-mango-tags3,
+#custom-mango-tags4,
+#custom-mango-tags5,
+#custom-mango-tags6,
+#custom-mango-tags7,
+#custom-mango-tags8,
+#custom-mango-tags9 {
     margin: 0 3px;
     min-width: 22px;
     min-height: 22px;
     padding: 0;
     border-radius: 0;
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 600;
-    background: #282A2E;
-    color: #707880;
+    background: #232A2E;
+    color: #7A8478;
     border: none;
     transition: all 0.15s ease;
 }
 
-#custom-mango_tags1.occupied,
-#custom-mango_tags2.occupied,
-#custom-mango_tags3.occupied,
-#custom-mango_tags4.occupied,
-#custom-mango_tags5.occupied,
-#custom-mango_tags6.occupied,
-#custom-mango_tags7.occupied,
-#custom-mango_tags8.occupied,
-#custom-mango_tags9.occupied {
-    color: #C5C8C6;
+#custom-mango-tags1.occupied,
+#custom-mango-tags2.occupied,
+#custom-mango-tags3.occupied,
+#custom-mango-tags4.occupied,
+#custom-mango-tags5.occupied,
+#custom-mango-tags6.occupied,
+#custom-mango-tags7.occupied,
+#custom-mango-tags8.occupied,
+#custom-mango-tags9.occupied {
+    color: #D3C6AA;
 }
 
-#custom-mango_tags1.active,
-#custom-mango_tags2.active,
-#custom-mango_tags3.active,
-#custom-mango_tags4.active,
-#custom-mango_tags5.active,
-#custom-mango_tags6.active,
-#custom-mango_tags7.active,
-#custom-mango_tags8.active,
-#custom-mango_tags9.active {
-    background: #373B41;
-    color: #F0C674;
+#custom-mango-tags1.active,
+#custom-mango-tags2.active,
+#custom-mango-tags3.active,
+#custom-mango-tags4.active,
+#custom-mango-tags5.active,
+#custom-mango-tags6.active,
+#custom-mango-tags7.active,
+#custom-mango-tags8.active,
+#custom-mango-tags9.active {
+    background: #2D353B;
+    color: #A7C080;
     font-weight: 700;
-    box-shadow: 0 3px 0 #F0C674;
+    box-shadow: 0 3px 0 #A7C080;
 }
 
-#custom-mango_tags1.urgent,
-#custom-mango_tags2.urgent,
-#custom-mango_tags3.urgent,
-#custom-mango_tags4.urgent,
-#custom-mango_tags5.urgent,
-#custom-mango_tags6.urgent,
-#custom-mango_tags7.urgent,
-#custom-mango_tags8.urgent,
-#custom-mango_tags9.urgent {
-    background: #A54242;
-    color: #C5C8C6;
+#custom-mango-tags1.urgent,
+#custom-mango-tags2.urgent,
+#custom-mango-tags3.urgent,
+#custom-mango-tags4.urgent,
+#custom-mango-tags5.urgent,
+#custom-mango-tags6.urgent,
+#custom-mango-tags7.urgent,
+#custom-mango-tags8.urgent,
+#custom-mango-tags9.urgent {
+    background: #514045;
+    color: #E67E80;
 }
 
 #custom-mango_focused {
     margin: 0;
     padding: 0 14px;
     border-radius: 0;
-    color: #C5C8C6;
+    color: #D3C6AA;
     font-weight: 500;
-    background: #282A2E;
+    background: #232A2E;
     border: none;
     letter-spacing: 0.5px;
 }
 
 #custom-mango_focused.window-active {
-    color: #F0C674;
+    color: #DBBC7F;
 }
 
 #custom-mango_focused.window-idle {
-    color: #565f77;
+    color: #7A8478;
 }
 
 #custom-notify {
-    color: #F0C674;
+    color: #A7C080;
     margin: 0 6px;
     padding: 0 8px;
     font-weight: 600;
-    background: #282A2E;
+    background: #232A2E;
 }
 
-#custom-spacer {
-    color: transparent;
-    min-width: 6px;
-    padding: 0;
-    margin: 0;
+#custom-notify.has-notifications {
+    color: #E67E80;
+    animation: blink 1s ease-in-out infinite;
+}
+
+#custom-notify.no-notifications {
+    color: #7A8478;
 }
 
 #custom-sep1,
@@ -119,7 +121,7 @@ window#waybar {
 #custom-sep7,
 #custom-sep8,
 #custom-sep {
-    color: #707880;
+    color: #7A8478;
     margin: 0;
     padding: 0;
     min-width: 0;
@@ -133,8 +135,8 @@ window#waybar {
 #pulseaudio,
 #battery,
 #clock {
-    background: #282A2E;
-    color: #C5C8C6;
+    background: #232A2E;
+    color: #D3C6AA;
     padding: 0 8px;
     margin: 0;
     border: none;
@@ -149,64 +151,63 @@ window#waybar {
 #pulseaudio:hover,
 #battery:hover,
 #clock:hover {
-    background: #3a3f58;
-    border-color: #4a5270;
+    background: #2D353B;
 }
 
 #cpu.warning,
 #memory.warning,
 #battery.warning {
-    color: #F0C674;
+    color: #DBBC7F;
 }
 
 #cpu.critical,
 #memory.critical,
 #battery.critical {
-    color: #A54242;
+    color: #E67E80;
     animation: blink 1s ease-in-out infinite;
 }
 
 #pulseaudio.muted {
-    color: #707880;
+    color: #7A8478;
 }
 
 #battery.charging {
-    color: #8ABEB7;
+    color: #A7C080;
 }
 
 #custom-net.disconnected {
-    color: #A54242;
+    color: #E67E80;
 }
 
 #custom-net.wifi {
-    color: #C5C8C6;
+    color: #D3C6AA;
 }
 
 #custom-net.ethernet {
-    color: #C5C8C6;
+    color: #D3C6AA;
 }
 
 #custom-tuned {
-    color: #8ABEB7;
+    color: #7FBBB3;
 }
 
 #custom-tuned.active {
-    color: #8ABEB7;
+    color: #7FBBB3;
 }
 
 #custom-tuned.inactive {
-    color: #F0C674;
+    color: #DBBC7F;
 }
 
 tooltip {
-    background: rgba(40, 42, 46, 0.95);
-    border: 1px solid #373B41;
+    background: rgba(35, 42, 46, 0.95);
+    border: 1px solid #2D353B;
     border-radius: 4px;
-    color: #C5C8C6;
+    color: #D3C6AA;
 }
 
 tooltip label {
-    color: #C5C8C6;
+    color: #D3C6AA;
 }
 
 @keyframes blink {
