@@ -161,10 +161,10 @@
     },
     "custom/notify": {
         "format": "{}",
-        "exec": "swaync-client -swb",
+        "exec": "/home/honken/.config/waybar/scripts/mako_count.sh",
         "return-type": "json",
-        "on-click": "swaync-client -t",
-        "on-click-right": "swaync-client -d",
+        "on-click": "makoctl menu",
+        "on-click-right": "makoctl dismiss-all",
         "tooltip": true
     },
     "cpu": {

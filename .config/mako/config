@@ -1,0 +1,24 @@
+default-timeout=5
+enable-hyperlink=1
+icon-path=/usr/share/icons/Papirus/24x24/actions
+icons=1
+margin-bottom=2
+margin-right=2
+width=300
+border-radius=12
+font=JetBrains Mono Nerd Font 12
+background-color=#1e1e2eff
+text-color=cdd6f4ff
+border-color=b4befeff
+border-width=1
+
+[default]
+background-color=#1e1e2eff
+text-color=cdd6f4ff
+border-color=b4befeff
+
+[critical]
+background-color=#f38ba8ff
+text-color=#1e1e2eff
+border-color=#f38ba8ff
+default-timeout=0

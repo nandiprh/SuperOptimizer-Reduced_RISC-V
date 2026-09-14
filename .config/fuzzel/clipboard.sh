@@ -7,8 +7,8 @@ if ! cliphist list 2>/dev/null | head -1 | grep -q .; then
     exit 0
 fi
 
-# Launch fuzzel in dmenu mode with clipboard entries
-choice=$(cliphist list | fuzzel --dmenu --prompt="Clipboard " --width=40% --lines=10)
+# Launch fuzzel in dmenu mode with clipboard entries, anchored to right
+choice=$(cliphist list | fuzzel --dmenu --prompt="Clipboard " --anchor=right --width=40% --lines=10)
 
 if [ -z "$choice" ]; then
     exit 0
