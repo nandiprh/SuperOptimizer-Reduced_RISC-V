@@ -1,6 +1,6 @@
 * {
     font-family: "JetBrains Mono Nerd Font", "FiraCode Nerd Font", "DejaVu Sans Mono", monospace;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     min-height: 0;
 }
@@ -28,7 +28,7 @@ window#waybar {
     min-height: 22px;
     padding: 0;
     border-radius: 0;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     background: #282A2E;
     color: #7A8478;
@@ -85,7 +85,7 @@ window#waybar {
     background: #282A2E;
     border: none;
     letter-spacing: 0.5px;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 #custom-mango_focused.window-active {
@@ -102,7 +102,7 @@ window#waybar {
     padding: 0 8px;
     font-weight: 600;
     background: #282A2E;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 #custom-notify.has-notifications {
@@ -128,7 +128,7 @@ window#waybar {
     padding: 0;
     min-width: 0;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 #cpu,
@@ -144,7 +144,7 @@ window#waybar {
     margin: 0;
     border: none;
     border-radius: 0;
-    font-size: 14px;
+    font-size: 15px;
     transition: all 0.15s ease;
 }
 
