@@ -551,9 +551,19 @@ static void run_focused(void) {
             const char *appid = jstr(jobj_get(root, "appid"));
             char text[256] = {0};
             if (title && title[0]) {
-                snprintf(text, sizeof(text), "%.240s", title);
+                int len = strlen(title);
+                if (len > 60) {
+                    snprintf(text, sizeof(text), "%.57s...", title);
+                } else {
+                    snprintf(text, sizeof(text), "%.240s", title);
+                }
             } else if (appid && appid[0]) {
-                snprintf(text, sizeof(text), "%.240s", appid);
+                int len = strlen(appid);
+                if (len > 60) {
+                    snprintf(text, sizeof(text), "%.57s...", appid);
+                } else {
+                    snprintf(text, sizeof(text), "%.240s", appid);
+                }
             } else {
                 snprintf(text, sizeof(text), "—");
             }
