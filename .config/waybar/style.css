@@ -14,15 +14,15 @@ window#waybar {
     opacity: 1;
 }
 
-#custom-mango-tags1,
-#custom-mango-tags2,
-#custom-mango-tags3,
-#custom-mango-tags4,
-#custom-mango-tags5,
-#custom-mango-tags6,
-#custom-mango-tags7,
-#custom-mango-tags8,
-#custom-mango-tags9 {
+#custom-mango_tags1,
+#custom-mango_tags2,
+#custom-mango_tags3,
+#custom-mango_tags4,
+#custom-mango_tags5,
+#custom-mango_tags6,
+#custom-mango_tags7,
+#custom-mango_tags8,
+#custom-mango_tags9 {
     margin: 0 3px;
     min-width: 22px;
     min-height: 22px;
@@ -36,42 +36,42 @@ window#waybar {
     transition: all 0.15s ease;
 }
 
-#custom-mango-tags1.occupied,
-#custom-mango-tags2.occupied,
-#custom-mango-tags3.occupied,
-#custom-mango-tags4.occupied,
-#custom-mango-tags5.occupied,
-#custom-mango-tags6.occupied,
-#custom-mango-tags7.occupied,
-#custom-mango-tags8.occupied,
-#custom-mango-tags9.occupied {
+#custom-mango_tags1.occupied,
+#custom-mango_tags2.occupied,
+#custom-mango_tags3.occupied,
+#custom-mango_tags4.occupied,
+#custom-mango_tags5.occupied,
+#custom-mango_tags6.occupied,
+#custom-mango_tags7.occupied,
+#custom-mango_tags8.occupied,
+#custom-mango_tags9.occupied {
     color: #C5C8C6;
 }
 
-#custom-mango-tags1.active,
-#custom-mango-tags2.active,
-#custom-mango-tags3.active,
-#custom-mango-tags4.active,
-#custom-mango-tags5.active,
-#custom-mango-tags6.active,
-#custom-mango-tags7.active,
-#custom-mango-tags8.active,
-#custom-mango-tags9.active {
+#custom-mango_tags1.active,
+#custom-mango_tags2.active,
+#custom-mango_tags3.active,
+#custom-mango_tags4.active,
+#custom-mango_tags5.active,
+#custom-mango_tags6.active,
+#custom-mango_tags7.active,
+#custom-mango_tags8.active,
+#custom-mango_tags9.active {
     background: #373B41;
     color: #F0C674;
     font-weight: 700;
     box-shadow: 0 3px 0 #F0C674;
 }
 
-#custom-mango-tags1.urgent,
-#custom-mango-tags2.urgent,
-#custom-mango-tags3.urgent,
-#custom-mango-tags4.urgent,
-#custom-mango-tags5.urgent,
-#custom-mango-tags6.urgent,
-#custom-mango-tags7.urgent,
-#custom-mango-tags8.urgent,
-#custom-mango-tags9.urgent {
+#custom-mango_tags1.urgent,
+#custom-mango_tags2.urgent,
+#custom-mango_tags3.urgent,
+#custom-mango_tags4.urgent,
+#custom-mango_tags5.urgent,
+#custom-mango_tags6.urgent,
+#custom-mango_tags7.urgent,
+#custom-mango_tags8.urgent,
+#custom-mango_tags9.urgent {
     background: #A54242;
     color: #C5C8C6;
 }
