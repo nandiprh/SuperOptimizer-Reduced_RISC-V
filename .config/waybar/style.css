@@ -60,7 +60,7 @@ window#waybar {
     background: #373B41;
     color: #F0C674;
     font-weight: 700;
-    border-bottom: 3px solid #F0C674;
+    box-shadow: 0 3px 0 #F0C674;
 }
 
 #custom-mango-tags1.urgent,
