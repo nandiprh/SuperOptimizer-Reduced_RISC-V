@@ -32,7 +32,7 @@ window#waybar {
     font-weight: 600;
     background: #282A2E;
     color: #7A8478;
-    border: none;
+    border: 1px solid #A7C080;
     transition: all 0.15s ease;
 }
 
@@ -83,7 +83,7 @@ window#waybar {
     color: #D3C6AA;
     font-weight: 500;
     background: #282A2E;
-    border: none;
+    border: 1px solid #A7C080;
     letter-spacing: 0.5px;
     font-size: 15px;
 }
@@ -102,6 +102,7 @@ window#waybar {
     padding: 0 8px;
     font-weight: 600;
     background: #282A2E;
+    border: 1px solid #A7C080;
     font-size: 15px;
 }
 
@@ -129,6 +130,7 @@ window#waybar {
     min-width: 0;
     font-weight: 500;
     font-size: 15px;
+    border: 1px solid #A7C080;
 }
 
 #cpu,
@@ -142,7 +144,7 @@ window#waybar {
     color: #D3C6AA;
     padding: 0 8px;
     margin: 0;
-    border: none;
+    border: 1px solid #A7C080;
     border-radius: 0;
     font-size: 15px;
     transition: all 0.15s ease;
