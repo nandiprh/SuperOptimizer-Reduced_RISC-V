@@ -8,7 +8,7 @@
 window#waybar {
     background: #282A2E;
     color: #D3C6AA;
-    border: 2px solid #A7C080;
+    border: none;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     opacity: 1;
@@ -32,7 +32,7 @@ window#waybar {
     font-weight: 600;
     background: #282A2E;
     color: #7A8478;
-    border: 1px solid #A7C080;
+    border: none;
     transition: all 0.15s ease;
 }
 
@@ -83,7 +83,7 @@ window#waybar {
     color: #D3C6AA;
     font-weight: 500;
     background: #282A2E;
-    border: 1px solid #A7C080;
+    border: none;
     letter-spacing: 0.5px;
     font-size: 15px;
 }
@@ -102,7 +102,7 @@ window#waybar {
     padding: 0 8px;
     font-weight: 600;
     background: #282A2E;
-    border: 1px solid #A7C080;
+    border: none;
     font-size: 15px;
 }
 
@@ -130,7 +130,7 @@ window#waybar {
     min-width: 0;
     font-weight: 500;
     font-size: 15px;
-    border: 1px solid #A7C080;
+    border: none;
 }
 
 #cpu,
@@ -144,7 +144,7 @@ window#waybar {
     color: #D3C6AA;
     padding: 0 8px;
     margin: 0;
-    border: 1px solid #A7C080;
+    border: none;
     border-radius: 0;
     font-size: 15px;
     transition: all 0.15s ease;

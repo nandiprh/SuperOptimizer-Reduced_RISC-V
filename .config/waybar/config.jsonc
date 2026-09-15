@@ -1,6 +1,6 @@
 {
 "layer": "top",
-    "position": "top",
+    "position": "bottom",
     "width": 1652,
     "height": 30,
     "margin-top": 6,
@@ -37,13 +37,15 @@
         "custom/sep",
         "memory",
         "custom/sep",
-        "custom/net",
+        "network",
+        "custom/sep",
+        "backlight",
         "custom/sep",
         "custom/tuned",
+        "custom/sep",
         "pulseaudio",
         "custom/sep",
         "battery",
-        "custom/sep",
         "custom/sep",
         "clock"
     ],
@@ -146,11 +148,20 @@
     "custom/spacer": {
         "format": "  "
     },
-    "custom/net": {
-        "format": "{}",
-        "exec": "/home/honken/.config/waybar/scripts/net_status.sh",
-        "return-type": "json",
-        "tooltip": true
+    "network": {
+        "format-wifi": "<span color='#F0C674'>WIFI</span> {essid} {signalStrength}%",
+        "format-ethernet": "<span color='#F0C674'>ETH</span> {ifname}",
+        "format-disconnected": "<span color='#A54242'>OFFLINE</span>",
+        "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr}",
+        "on-click": "nmcli connection show",
+        "interval": 5
+    },
+    "backlight": {
+        "device": "intel_backlight",
+        "format": "<span color='#F0C674'>BRT</span> {percent}%",
+        "tooltip-format": "Brightness {percent}%",
+        "on-scroll-up": "/home/honken/.config/mango/scripts/brightness.sh up",
+        "on-scroll-down": "/home/honken/.config/mango/scripts/brightness.sh down"
     },
     "custom/tuned": {
         "format": "{}",
