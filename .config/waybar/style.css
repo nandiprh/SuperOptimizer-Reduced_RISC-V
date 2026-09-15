@@ -154,6 +154,7 @@ window#waybar {
 #custom-tuned:hover,
 #pulseaudio:hover,
 #battery:hover,
+#backlight:hover,
 #clock:hover {
     background: #2D353B;
 }

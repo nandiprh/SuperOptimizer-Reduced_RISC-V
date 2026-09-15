@@ -1,8 +1,8 @@
 {
 "layer": "top",
     "position": "top",
-    "width": 1900,
-    "height": 40,
+    "width": 1652,
+    "height": 30,
     "margin-top": 6,
     "margin-left": 7,
     "margin-right": 5,
@@ -43,6 +43,8 @@
         "pulseaudio",
         "custom/sep",
         "battery",
+        "custom/sep",
+        "Backlight",
         "custom/sep",
         "clock"
     ],
@@ -202,6 +204,13 @@
         "format-plugged": "<span color='#F0C674'>BAT</span> {capacity}%",
         "interval": 30
     },
+    "backlight": {
+    "device": "intel_backlight",
+    "format": "<span color='#F0C674'>BRT</span> {percent}%",
+    "tooltip-format": "Brightness {percent}%",
+    "on-scroll-up": "/home/honken/.local/bin/brightness.sh up",
+    "on-scroll-down": "/home/honken/.local/bin/brightness.sh down"
+        },
     "clock": {
         "format": "<span color='#F0C674'>TIME</span> {:%H:%M}",
         "format-alt": "<span color='#F0C674'>TIME</span> {:%Y-%m-%d %H:%M:%S}",
