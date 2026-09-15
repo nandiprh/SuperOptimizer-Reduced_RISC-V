@@ -1,8 +1,8 @@
 {
-"layer": "top",
+ "layer": "top",
     "position": "bottom",
     "width": 1652,
-    "height": 35,
+    "height": 30,
     "margin-top": 6,
     "margin-left": 7,
     "margin-right": 5,
@@ -33,7 +33,6 @@
         "custom/mango_focused"
     ],
     "modules-right": [
-        "custom/sep",
         "cpu",
         "custom/sep",
         "memory",
@@ -44,7 +43,7 @@
         "custom/sep",
         "custom/tuned",
         "custom/sep",
-        "pulseaudio",
+        "custom/pulse",
         "custom/sep",
         "battery",
         "custom/sep",
@@ -112,54 +111,53 @@
     },
     "custom/sep1": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/sep2": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/sep3": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/sep4": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/sep5": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/sep6": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/sep7": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/sep8": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/sep": {
         "format": "|",
-        "color": "#707880"
+        "color": "#565f77"
     },
     "custom/spacer": {
         "format": "  "
     },
     "network": {
-        "format-wifi": "<span color='#F0C674'>WIFI</span> {essid} {signalStrength}%",
-        "format-ethernet": "<span color='#F0C674'>ETH</span>",
-        "format-disconnected": "<span color='#A54242'>OFFLINE</span>",
-        "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr}",
-        "on-click": "nmcli connection show",
-        "interval": 5
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/net_combined.sh",
+        "return-type": "json",
+        "interval": 2,
+        "tooltip": true
     },
     "backlight": {
         "device": "intel_backlight",
-        "format": "<span color='#F0C674'>BRT</span> {percent}%",
+        "format": "<span color='#7aa2f7'>BRT</span> {percent}%",
         "tooltip-format": "Brightness {percent}%",
         "on-scroll-up": "/home/honken/.config/mango/scripts/brightness.sh up",
         "on-scroll-down": "/home/honken/.config/mango/scripts/brightness.sh down"
@@ -172,6 +170,14 @@
         "on-click": "/home/honken/.config/waybar/scripts/tuned_toggle.sh",
         "tooltip": true
     },
+    "custom/pulse": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/pulse_combined.sh",
+        "return-type": "json",
+        "interval": 1,
+        "on-click": "pavucontrol",
+        "on-click-middle": "wpctl mute @DEFAULT_SINK@ toggle"
+    },
     "custom/notify": {
         "format": "{}",
         "exec": "/home/honken/.config/waybar/scripts/mako_count.sh",
@@ -181,43 +187,28 @@
         "tooltip": true
     },
     "cpu": {
-        "format": "<span color='#F0C674'>CPU</span> {usage}%",
+        "format": "<span color='#7aa2f7'>CPU</span> {usage}%",
         "tooltip-format": "CPU {usage}%",
         "interval": 2
     },
     "memory": {
-        "format": "<span color='#F0C674'>RAM</span> {}%",
+        "format": "<span color='#7aa2f7'>RAM</span> {}%",
         "tooltip-format": "MEM {percentage}%  {used} / {total}",
         "interval": 2
-    },
-    "pulseaudio": {
-        "format": "<span color='#F0C674'>VOL</span> {volume}%",
-        "format-muted": "<span color='#707880'>MUTED</span>",
-        "format-icons": {
-            "headphone": "\uF025",
-            "hands-free": "\uF025",
-            "headset": "\uF025",
-            "phone": "\uF095",
-            "portable": "\uF025",
-            "car": "\uF1B9",
-            "default": ["\uF026", "\uF027", "\uF028"]
-        },
-        "on-click": "pavucontrol",
-        "scroll-step": 5
     },
     "battery": {
         "states": {
             "warning": 30,
             "critical": 15
         },
-        "format": "<span color='#F0C674'>BAT</span> {capacity}%",
-        "format-charging": "<span color='#F0C674'>BAT</span> {capacity}%",
-        "format-plugged": "<span color='#F0C674'>BAT</span> {capacity}%",
+        "format": "<span color='#7aa2f7'>BAT</span> {capacity}%",
+        "format-charging": "<span color='#7aa2f7'>BAT</span> {capacity}%",
+        "format-plugged": "<span color='#7aa2f7'>BAT</span> {capacity}%",
         "interval": 30
     },
     "clock": {
-        "format": "<span color='#F0C674'>TIME</span> {:%H:%M}",
-        "format-alt": "<span color='#F0C674'>TIME</span> {:%Y-%m-%d %H:%M:%S}",
+        "format": "<span color='#7aa2f7'>TIME</span> {:%H:%M}",
+        "format-alt": "<span color='#7aa2f7'>TIME</span> {:%Y-%m-%d %H:%M:%S}",
         "tooltip-format": "{:%A, %d %B %Y}",
         "interval": 1
     }
