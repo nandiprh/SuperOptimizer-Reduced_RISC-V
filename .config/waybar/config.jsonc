@@ -2,7 +2,7 @@
 "layer": "top",
     "position": "bottom",
     "width": 1652,
-    "height": 30,
+    "height": 35,
     "margin-top": 6,
     "margin-left": 7,
     "margin-right": 5,
@@ -33,6 +33,7 @@
         "custom/mango_focused"
     ],
     "modules-right": [
+        "custom/sep",
         "cpu",
         "custom/sep",
         "memory",
@@ -150,7 +151,7 @@
     },
     "network": {
         "format-wifi": "<span color='#F0C674'>WIFI</span> {essid} {signalStrength}%",
-        "format-ethernet": "<span color='#F0C674'>ETH</span> {ifname}",
+        "format-ethernet": "<span color='#F0C674'>ETH</span>",
         "format-disconnected": "<span color='#A54242'>OFFLINE</span>",
         "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr}",
         "on-click": "nmcli connection show",
