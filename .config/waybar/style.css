@@ -30,7 +30,7 @@ window#waybar {
     border-radius: 0;
     font-size: 15px;
     font-weight: 600;
-    background: #282A2E;
+    background: #1a1b26;
     color: #565f77;
     border: none;
     transition: all 0.15s ease;
@@ -57,7 +57,7 @@ window#waybar {
 #custom-mango_tags7.active,
 #custom-mango_tags8.active,
 #custom-mango_tags9.active {
-    background: #2a2c3d;
+    background: #1a1b26;
     color: #7dcfff;
     font-weight: 700;
     box-shadow: 0 3px 0 #7dcfff;
@@ -72,7 +72,7 @@ window#waybar {
 #custom-mango_tags7.urgent,
 #custom-mango_tags8.urgent,
 #custom-mango_tags9.urgent {
-    background: #565f77;
+    background: #1a1b26;
     color: #f7768e;
 }
 
@@ -82,7 +82,7 @@ window#waybar {
     border-radius: 0;
     color: #c0caf5;
     font-weight: 500;
-    background: #282A2E;
+    background: #1a1b26;
     border: none;
     letter-spacing: 0.5px;
     font-size: 15px;
@@ -101,7 +101,7 @@ window#waybar {
     margin: 0 6px;
     padding: 0 8px;
     font-weight: 600;
-    background: #282A2E;
+    background: #1a1b26;
     border: none;
     font-size: 15px;
 }
@@ -140,7 +140,7 @@ window#waybar {
 #pulseaudio,
 #battery,
 #clock {
-    background: #282A2E;
+    background: #1a1b26;
     color: #c0caf5;
     padding: 0 8px;
     margin: 0;
@@ -158,7 +158,7 @@ window#waybar {
 #battery:hover,
 #backlight:hover,
 #clock:hover {
-    background: #2a2c3d;
+    background: #1a1b26;
 }
 
 #cpu.warning,
@@ -207,7 +207,7 @@ window#waybar {
 }
 
 tooltip {
-    background: rgba(35, 42, 46, 0.95);
+    background: rgba(26, 27, 38, 0.95);
     border: 1px solid #2a2c3d;
     border-radius: 4px;
     color: #c0caf5;
