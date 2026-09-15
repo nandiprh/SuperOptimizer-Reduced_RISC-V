@@ -43,7 +43,7 @@
         "custom/sep",
         "custom/tuned",
         "custom/sep",
-        "custom/pulse",
+        "custom/vol",
         "custom/sep",
         "battery",
         "custom/sep",
@@ -170,7 +170,7 @@
         "on-click": "/home/honken/.config/waybar/scripts/tuned_toggle.sh",
         "tooltip": true
     },
-    "custom/pulse": {
+    "custom/vol": {
         "format": "{}",
         "exec": "/home/honken/.config/waybar/scripts/pulse_combined.sh",
         "return-type": "json",

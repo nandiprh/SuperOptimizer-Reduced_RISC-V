@@ -137,7 +137,7 @@ window#waybar {
 #memory,
 #custom-net,
 #custom-tuned,
-#pulseaudio,
+#custom-vol,
 #battery,
 #clock {
     background: #1a1b26;
@@ -154,7 +154,7 @@ window#waybar {
 #memory:hover,
 #custom-net:hover,
 #custom-tuned:hover,
-#pulseaudio:hover,
+#custom-vol:hover,
 #battery:hover,
 #backlight:hover,
 #clock:hover {
@@ -174,7 +174,7 @@ window#waybar {
     animation: blink 1s ease-in-out infinite;
 }
 
-#pulseaudio.muted {
+#custom-vol.muted {
     color: #565f77;
 }
 
