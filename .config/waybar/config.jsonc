@@ -43,7 +43,7 @@
         "custom/sep",
         "custom/tuned",
         "custom/sep",
-        "custom/vol",
+        "pulseaudio",
         "custom/sep",
         "battery",
         "custom/sep",
@@ -149,11 +149,12 @@
         "format": "  "
     },
     "network": {
-        "format": "{}",
-        "exec": "/home/honken/.config/waybar/scripts/net_combined.sh",
-        "return-type": "json",
-        "interval": 2,
-        "tooltip": true
+        "format-wifi": "<span color='#7aa2f7'>WIFI</span>",
+        "format-ethernet": "<span color='#9ece6a'>ETH</span>",
+        "format-disconnected": "<span color='#f7768e'>OFFLINE</span>",
+        "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr}",
+        "on-click": "nmcli connection show",
+        "interval": 5
     },
     "backlight": {
         "device": "intel_backlight",
@@ -170,13 +171,20 @@
         "on-click": "/home/honken/.config/waybar/scripts/tuned_toggle.sh",
         "tooltip": true
     },
-    "custom/vol": {
-        "format": "{}",
-        "exec": "/home/honken/.config/waybar/scripts/pulse_combined.sh",
-        "return-type": "json",
-        "interval": 1,
+    "pulseaudio": {
+        "format": "<span color='#7aa2f7'>VOL</span> {volume}%",
+        "format-muted": "<span color='#565f77'>MUTED</span>",
+        "format-icons": {
+            "headphone": "\uF025",
+            "hands-free": "\uF025",
+            "headset": "\uF025",
+            "phone": "\uF095",
+            "portable": "\uF025",
+            "car": "\uF1B9",
+            "default": ["\uF026", "\uF027", "\uF028"]
+        },
         "on-click": "pavucontrol",
-        "on-click-middle": "wpctl mute @DEFAULT_SINK@ toggle"
+        "scroll-step": 5
     },
     "custom/notify": {
         "format": "{}",
