@@ -33,6 +33,7 @@
         "custom/mango_focused"
     ],
     "modules-right": [
+        "custom/sep",
         "cpu",
         "custom/sep",
         "memory",
@@ -40,8 +41,6 @@
         "network",
         "custom/sep",
         "backlight",
-        "custom/sep",
-        "custom/tuned",
         "custom/sep",
         "pulseaudio",
         "custom/sep",
@@ -149,8 +148,8 @@
         "format": "  "
     },
     "network": {
-        "format-wifi": "<span color='#7aa2f7'>WIFI</span>",
-        "format-ethernet": "<span color='#9ece6a'>ETH</span>",
+        "format-wifi": "<span color='#7aa2f7'> WIFI </span>",
+        "format-ethernet": "<span color='#9ece6a'> ETH </span>",
         "format-disconnected": "<span color='#f7768e'>OFFLINE</span>",
         "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr}",
         "on-click": "nmcli connection show",
@@ -158,7 +157,7 @@
     },
     "backlight": {
         "device": "intel_backlight",
-        "format": "<span color='#7aa2f7'>BRT</span> {percent}%",
+        "format": "<span color='#7aa2f7'> BRT</span> {percent}% ",
         "tooltip-format": "Brightness {percent}%",
         "on-scroll-up": "/home/honken/.config/mango/scripts/brightness.sh up",
         "on-scroll-down": "/home/honken/.config/mango/scripts/brightness.sh down"
