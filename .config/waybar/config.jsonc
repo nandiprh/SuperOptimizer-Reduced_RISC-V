@@ -1,8 +1,8 @@
 {
  "layer": "top",
     "position": "bottom",
-    "width": 1652,
-    "height": 30,
+    "width": 1583,
+    "height": 40,
     "margin-top": 6,
     "margin-left": 7,
     "margin-right": 5,
@@ -151,7 +151,7 @@
         "format-wifi": "<span color='#7aa2f7'> WIFI </span>",
         "format-ethernet": "<span color='#9ece6a'> ETH </span>",
         "format-disconnected": "<span color='#f7768e'>OFFLINE</span>",
-        "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr}",
+        "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr} | 󰇚{bandwidthDownBytes} | 󰕒{bandwidthUpBytes}",
         "on-click": "nmcli connection show",
         "interval": 5
     },

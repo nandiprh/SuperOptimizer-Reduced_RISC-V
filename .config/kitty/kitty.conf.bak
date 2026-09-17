@@ -1,8 +1,4 @@
-# Tokyo Night theme for kitty
-# Based on tonybanters/alacritty TokyoNight colorscheme
-
 shell /home/honken/.nix-profile/bin/zsh
-include current-theme.conf
 
 # Display
 font_family      family="JetBrains Mono"
@@ -43,6 +39,6 @@ term_features xterm-24bit
 
 
 # BEGIN_KITTY_THEME
-# Ciapre
+# Ryoccino
 include current-theme.conf
 # END_KITTY_THEME
