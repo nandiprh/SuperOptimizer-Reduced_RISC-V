@@ -6,12 +6,12 @@
 }
 
 window#waybar {
-    background: #1a1b26;
+    background: #1a1b26; 
     color: #c0caf5;
     border: none;
     border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    opacity: 1;
+    box-shadow: none;                /*0 2px 8px rgba(0, 0, 0, 0.4);*/
+    opacity: 1.0;
 }
 
 #custom-mango_tags1,
