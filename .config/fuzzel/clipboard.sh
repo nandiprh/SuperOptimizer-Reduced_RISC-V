@@ -1,21 +1,44 @@
 #!/usr/bin/env bash
-# Clipboard launcher using cliphist + fuzzel
+# ~/.config/fuzzel/clipboard.sh
 
-# Check if clipboard has entries
 if ! cliphist list 2>/dev/null | head -1 | grep -q .; then
     notify-send "Clipboard" "No clipboard history available" -i edit-clipboard
     exit 0
 fi
 
-# Launch fuzzel in dmenu mode with clipboard entries, anchored to right
-choice=$(cliphist list | fuzzel --dmenu --prompt="Clipboard " --anchor=right --width=40% --lines=10)
+# Store entries with original cliphist IDs
+ENTRIES=$(cliphist list | head -50)
 
-if [ -z "$choice" ]; then
-    exit 0
-fi
+# Number them 1-50, stripping cliphist's own ID
+NUMBERED=$(echo "$ENTRIES" | nl -ba -nrz -w2 -v1 | awk '{$1=""; print NR". "substr($0,2)}' | head -50)
 
-# Decode and copy the selected entry to clipboard
-cliphist decode "$choice" | wl-copy
+# Show numbered list in fuzzel
+choice=$(echo "$NUMBERED" | fuzzel \
+    --dmenu \
+    --prompt="  " \
+    --anchor=top-right \
+    --width=60 \
+    --lines=15 \
+    --font="JetBrains Mono Nerd Font:size=12" \
+    --background=1e1e2eaa \
+    --text-color=cdd6f4ff \
+    --prompt-color=bac2deff \
+    --placeholder-color=7f849cff \
+    --input-color=cdd6f4ff \
+    --match-color=b4befeff \
+    --selection-color=585b70ff \
+    --selection-text-color=cdd6f4ff \
+    --selection-match-color=b4befeff \
+    --counter-color=7f849cff \
+    --border-width=2 \
+    --border-radius=24)
 
-# Show confirmation
+[ -z "$choice" ] && exit 0
+
+# Extract line number from selection, get original cliphist entry
+LINENUM=$(echo "$choice" | grep -oP '^\d+')
+ORIGINAL=$(echo "$ENTRIES" | sed -n "${LINENUM}p")
+
+# Decode and copy
+echo "$ORIGINAL" | cliphist decode | wl-copy
 notify-send "Clipboard" "Copied to clipboard" -i edit-clipboard
