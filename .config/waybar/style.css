@@ -8,7 +8,7 @@
 window#waybar {
     background: #1a1b26; 
     color: #c0caf5;
-    border: 3px solid #1a1b26;
+    border: 5px solid #1a1b26;
     border-radius: 10px;
     box-shadow: none;                /*0 2px 8px rgba(0, 0, 0, 0.4);*/
     opacity: 1.0;
@@ -77,7 +77,7 @@ window#waybar {
 }
 
 #custom-mango_focused {
-    margin: 0;
+    margin: 0 60px 0 0;
     padding: 0 14px;
     border-radius: 0;
     color: #c0caf5;
@@ -138,7 +138,7 @@ window#waybar {
 #memory,
 #custom-net,
 #custom-tuned,
-#pulseaudio,
+#custom-vol,
 #battery {
     background: #1a1b26;
     color: #c0caf5;
@@ -169,7 +169,7 @@ window#waybar {
 #memory:hover,
 #custom-net:hover,
 #custom-tuned:hover,
-#pulseaudio:hover,
+#custom-vol:hover,
 #battery:hover,
 #backlight:hover,
 #clock:hover {
@@ -189,7 +189,7 @@ window#waybar {
     animation: blink 1s ease-in-out infinite;
 }
 
-#pulseaudio.muted {
+#custom-vol.muted {
     color: #565f77;
 }
 

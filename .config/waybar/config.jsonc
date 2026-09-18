@@ -41,7 +41,7 @@
         "custom/sep",
         "backlight",
         "custom/sep",
-        "wireplumber",
+        "custom/vol",
         "custom/sep",
         "battery",
         "custom/sep",
@@ -162,7 +162,7 @@
         "on-scroll-down": "/home/honken/.config/mango/scripts/brightness.sh down"
     },
 
-"wireplumber": {
+"custom/vol": {
         "format": "{}",
         "exec": "/home/honken/.config/waybar/scripts/volume_wireplumber.sh",
         "return-type": "json",
