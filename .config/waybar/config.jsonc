@@ -6,7 +6,7 @@
     "margin-top": 6,
     "margin-left": 7,
     "margin-right": 5,
-    "margin-bottom": 0,
+    "margin-bottom": 5,
     "exclusive": true,
     "modules-left": [
         "custom/notify",
@@ -186,12 +186,18 @@
         "scroll-step": 5
     },
     "custom/notify": {
-        "format": "{}",
-        "exec": "/home/honken/.config/waybar/scripts/mako_count.sh",
+        "format": "{icon} {text}",
+        "exec": "swaync-client -swb",
         "return-type": "json",
-        "on-click": "makoctl menu",
-        "on-click-right": "makoctl dismiss-all",
-        "tooltip": true
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "tooltip": true,
+        "format-icons": {
+        "notification": "󰂚",
+        "none": "󰂜",
+        "dnd-notification": "󰂛",
+        "dnd-none": "󰂛"
+        }
     },
     "cpu": {
         "format": "<span color='#7aa2f7'>CPU</span> {usage}%",
