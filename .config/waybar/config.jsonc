@@ -4,8 +4,8 @@
     "width": 1583,
     "height": 40,
     "margin-top": 6,
-    "margin-left": 7,
-    "margin-right": 5,
+    "margin-left": 5,
+    "margin-right": 9,
     "margin-bottom": 5,
     "exclusive": true,
     "modules-left": [
@@ -41,7 +41,7 @@
         "custom/sep",
         "backlight",
         "custom/sep",
-        "pulseaudio",
+        "wireplumber",
         "custom/sep",
         "battery",
         "custom/sep",
@@ -162,21 +162,15 @@
         "on-scroll-down": "/home/honken/.config/mango/scripts/brightness.sh down"
     },
 
-    "pulseaudio": {
-        "format": "<span color='#7aa2f7'>VOL</span> {volume}%",
-        "format-muted": "<span color='#565f77'>MUTED</span>",
-        "format-icons": {
-            "headphone": "<span color='#7aa2f7'>VOLB</span> {volume}%",
-            "hands-free": "\uF025",
-            "headset": "\uF025",
-            "phone": "\uF095",
-            "portable": "\uF025",
-            "car": "\uF1B9",
-            "default": ["\uF026", "\uF027", "\uF028"]
-        },
+"wireplumber": {
+        "format": "{}",
+        "exec": "/home/honken/.config/waybar/scripts/volume_wireplumber.sh",
+        "return-type": "json",
+        "interval": 1,
         "on-click": "pavucontrol",
-        "scroll-step": 5
+        "on-click-middle": "wpctl mute @DEFAULT_SINK@ toggle"
     },
+
     "cpu": {
         "format": "<span color='#7aa2f7'>CPU</span> {usage}%",
         "tooltip-format": "CPU {usage}%",
