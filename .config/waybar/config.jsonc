@@ -1,15 +1,14 @@
 {
  "layer": "top",
     "position": "bottom",
-    "width": 1652,
-    "height": 30,
+    "width": 1583,
+    "height": 40,
     "margin-top": 6,
-    "margin-left": 7,
+    "margin-left": 5,
     "margin-right": 5,
-    "margin-bottom": 0,
+    "margin-bottom": 5,
     "exclusive": true,
     "modules-left": [
-        "custom/notify",
         "custom/spacer",
         "custom/mango_tags1",
         "custom/sep1",
@@ -151,7 +150,7 @@
         "format-wifi": "<span color='#7aa2f7'> WIFI </span>",
         "format-ethernet": "<span color='#9ece6a'> ETH </span>",
         "format-disconnected": "<span color='#f7768e'>OFFLINE</span>",
-        "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr}",
+        "tooltip-format": "{ifname} | {essid} | {signalStrength}% | {ipaddr} |  {bandwidthDownBytes} |  {bandwidthUpBytes}",
         "on-click": "nmcli connection show",
         "interval": 5
     },
@@ -162,45 +161,16 @@
         "on-scroll-up": "/home/honken/.config/mango/scripts/brightness.sh up",
         "on-scroll-down": "/home/honken/.config/mango/scripts/brightness.sh down"
     },
-    "custom/tuned": {
-        "format": "{}",
-        "exec": "/home/honken/.config/waybar/scripts/tuned_status.sh",
-        "return-type": "json",
-        "signal": 8,
-        "on-click": "/home/honken/.config/waybar/scripts/tuned_toggle.sh",
-        "tooltip": true
-    },
-    "pulseaudio": {
-        "format": "<span color='#7aa2f7'>VOL</span> {volume}%",
-        "format-muted": "<span color='#565f77'>MUTED</span>",
-        "format-icons": {
-            "headphone": "\uF025",
-            "hands-free": "\uF025",
-            "headset": "\uF025",
-            "phone": "\uF095",
-            "portable": "\uF025",
-            "car": "\uF1B9",
-            "default": ["\uF026", "\uF027", "\uF028"]
-        },
-        "on-click": "pavucontrol",
-        "scroll-step": 5
-    },
+
     "wireplumber": {
         "format": "<span color='#7aa2f7'>VOL</span> {volume}%",
         "format-muted": "<span color='#565f77'>MUTED</span>",
         "format-bluetooth": "<span color='#7aa2f7'>VOLB</span> {volume}%",
-        "format-muted-bluetooth": "<span color='#565f77'>MUTED</span>",
+        "format-bluetooth-muted": "<span color='#565f77'>MUTED</span>",
         "on-click": "pavucontrol",
         "scroll-step": 5
     },
-    "custom/notify": {
-        "format": "{}",
-        "exec": "/home/honken/.config/waybar/scripts/mako_count.sh",
-        "return-type": "json",
-        "on-click": "makoctl menu",
-        "on-click-right": "makoctl dismiss-all",
-        "tooltip": true
-    },
+
     "cpu": {
         "format": "<span color='#7aa2f7'>CPU</span> {usage}%",
         "tooltip-format": "CPU {usage}%",

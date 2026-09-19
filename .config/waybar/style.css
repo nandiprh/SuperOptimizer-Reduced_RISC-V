@@ -6,12 +6,12 @@
 }
 
 window#waybar {
-    background: #1a1b26;
+    background: #1a1b26; 
     color: #c0caf5;
-    border: none;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    opacity: 1;
+    border: 3px solid #1a1b26;
+    border-radius: 10px;
+    box-shadow: none;                /*0 2px 8px rgba(0, 0, 0, 0.4);*/
+    opacity: 1.0;
 }
 
 #custom-mango_tags1,
@@ -23,16 +23,17 @@ window#waybar {
 #custom-mango_tags7,
 #custom-mango_tags8,
 #custom-mango_tags9 {
-    margin: 0 3px;
+    margin: 0 0px;
     min-width: 22px;
     min-height: 22px;
-    padding: 0;
-    border-radius: 0;
+    padding: 2px;
+    border-radius: 10px;
     font-size: 15px;
     font-weight: 600;
     background: #1a1b26;
     color: #565f77;
     border: none;
+    box-shadow: none;
     transition: all 0.15s ease;
 }
 
@@ -59,8 +60,9 @@ window#waybar {
 #custom-mango_tags9.active {
     background: #1a1b26;
     color: #7dcfff;
-    font-weight: 700;
-    box-shadow: 0 3px 0 #7dcfff;
+    font-weight: 500;
+    box-shadow: none;
+    /*0 3px 0 #7dcfff;*/
 }
 
 #custom-mango_tags1.urgent,
@@ -104,6 +106,7 @@ window#waybar {
     background: #1a1b26;
     border: none;
     font-size: 15px;
+    
 }
 
 #custom-notify.has-notifications {
@@ -138,8 +141,7 @@ window#waybar {
 #custom-net,
 #custom-tuned,
 #wireplumber,
-#battery,
-#clock {
+#battery {
     background: #1a1b26;
     color: #c0caf5;
     padding: 0 8px;
@@ -148,6 +150,21 @@ window#waybar {
     border-radius: 0;
     font-size: 15px;
     transition: all 0.15s ease;
+}
+
+/* seperating clock module for adding curveness at borders*/
+
+#clock {
+    background: transparent;
+    color: #c0caf5;
+    padding: 0 16px 0 8px;
+    margin: 0;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.15s ease;
+    box-shadow: none;
+    opacity: 1.0;
 }
 
 #cpu:hover,
