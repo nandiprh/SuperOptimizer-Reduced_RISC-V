@@ -1,0 +1,6 @@
+# a | 0 == a; expect the identity, i.e. zero instructions
+live_in: {a0}
+live_out: {a0}
+code:
+addi t1, x0, 0
+or a0, a0, t1

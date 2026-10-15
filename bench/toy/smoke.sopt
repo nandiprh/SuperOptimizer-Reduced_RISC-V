@@ -1,0 +1,8 @@
+# smoke test: (a0+a1)-a1 << 1? wait - sub t2,t1,a1; slli t3,t2,1 gives ((a0+a1)-a1)<<1 = a0<<1 = 2*a0
+# so target live_out t3 should equal a0*2. Ideal is add t3,a0,a0 (or slli t3,a0,1)
+live_in: {a0, a1}
+live_out: {t3}
+code:
+add t1, a0, a1
+sub t2, t1, a1
+slli t3, t2, 1

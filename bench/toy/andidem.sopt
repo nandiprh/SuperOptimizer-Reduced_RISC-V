@@ -1,0 +1,7 @@
+# (a & b) | (a & b) == a & b; expect a single AND
+live_in: {a0, a1}
+live_out: {a0}
+code:
+and t1, a0, a1
+and t2, a0, a1
+or a0, t1, t2

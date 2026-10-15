@@ -1,0 +1,6 @@
+# (a >> 1) << 1 == a & ~1; expect ANDI a0, a0, -2 (1 insn)
+live_in: {a0}
+live_out: {a0}
+code:
+srli t1, a0, 1
+slli a0, t1, 1

@@ -1,0 +1,6 @@
+# (a + b) - a == b; expect a0 = a1 (a single move-through-add)
+live_in: {a0, a1}
+live_out: {a0}
+code:
+add t1, a0, a1
+sub a0, t1, a0

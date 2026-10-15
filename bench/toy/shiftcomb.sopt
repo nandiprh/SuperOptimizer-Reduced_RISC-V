@@ -1,0 +1,6 @@
+# (a << 3) << 2 == a << 5; expect a single SLLI by 5
+live_in: {a0}
+live_out: {a0}
+code:
+slli t1, a0, 3
+slli a0, t1, 2

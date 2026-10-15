@@ -1,0 +1,6 @@
+# simple example: (a+b)-b -> a
+live_in: {a0, a1}
+live_out: {a0}
+code:
+add a0, a0, a1
+sub a0, a0, a1

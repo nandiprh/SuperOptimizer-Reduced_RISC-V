@@ -1,0 +1,5 @@
+# a ^ a == 0; expect a constant-zero materialisation (1 insn)
+live_in: {a0}
+live_out: {a0}
+code:
+xor a0, a0, a0

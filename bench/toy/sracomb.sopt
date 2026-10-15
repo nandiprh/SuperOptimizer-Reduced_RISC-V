@@ -1,0 +1,6 @@
+# (a >> 4) >> 3 == a >> 7 (arithmetic); expect a single SRAI by 7
+live_in: {a0}
+live_out: {a0}
+code:
+srai t1, a0, 4
+srai a0, t1, 3

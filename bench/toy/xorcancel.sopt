@@ -1,0 +1,6 @@
+# (a ^ b) ^ b == a; expect the identity, i.e. zero instructions
+live_in: {a0, a1}
+live_out: {a0}
+code:
+xor t1, a0, a1
+xor a0, t1, a1
