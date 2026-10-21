@@ -5,7 +5,11 @@
 - Linux (developed on Gentoo Linux)
 - A C++17 compiler (`g++` tested; `clang++` should work)
 - GNU `make`
-- No third-party libraries (no Z3 yet — see process.md)
+- No third-party libraries are required for a normal build. **Z3 is optional**:
+  put `z3` on `PATH` and pass `--z3` for exact, proven verification. Without it
+  the verifier falls back to probabilistic testing (see [Caveats](#caveats)).
+- Python 3 is needed **only** to retrain the learned cost model (`make model`);
+  the committed model builds with the C++ compiler alone.
 
 ## Build
 
@@ -15,6 +19,113 @@ make clean && make
 
 This compiles `src/*.cpp` into `superopt`. Compiler flags:
 `-std=c++17 -Wall -Wextra -O2 -g -Isrc`. A clean build prints no warnings.
+
+### Retraining the learned cost model
+
+A trained GBDT model is committed in `src/model_data.hpp`, so the default build
+needs no Python. To regenerate it:
+
+```bash
+make dataset   # label 20k random blocks with the simulator -> results/dataset.csv
+make model     # fit the GBDT and rewrite src/model_data.hpp
+make           # rebuild superopt with the new model
+```
+
+`tools/train_model.py` uses only the Python standard library.
+
+## What is being optimized
+
+Input is a **loop-free, register-only basic block** in the reduced RV32I subset
+(20 opcodes plus `nop`; no loads/stores, branches, mul/div, or floating point).
+The optimizer searches for a **cheaper program with identical live-out
+register values for every input**.
+
+There are two distinct meanings of "cheaper", selected by `--cost-mode`:
+
+- **mode 0 (default)** — fewer non-NOP instructions. This is the classic
+  superoptimization objective.
+- **modes 1/2/3** — fewer estimated **execution cycles**: 1 = learned
+  gradient-boosted model, 2 = static bundling (DAG + height-ranked list
+  scheduling), 3 = dynamic Tomasulo + ROB. These can prefer *different*
+  programs than instruction count, because an extra independent instruction may
+  hide latency.
+
+Correctness always dominates performance: the total cost is
+`cost = 1000·eq_distance + perf`, and the graded equivalence distance
+`eq_distance` is the Hamming distance between candidate and target live-outs
+summed over test cases. Because any non-equivalent program has `eq ≥ 1`
+(so cost ≥ 1000) while any equivalent program has cost < 1000 for realistic
+sizes, the global optimum is **always a correct program** — the perf term only
+breaks ties among correct programs. See [algorithms.md](algorithms.md) and
+[math.md](math.md).
+
+Only **live-out** registers are compared. Live-in registers are inputs; every
+other register is a scratch value and may be freely rewritten.
+
+## How it handles the flow
+
+End to end:
+
+1. **Parse** the target (`.sopt` header + code, or an `--expr` block) into a
+   `ProgramSpec` with `live_in`, `live_out`, `code`, and a register pool
+   `live_in ∪ live_out ∪ temps`.
+2. **Generate tests** — a small set of input states (boundary values first, then
+   random) and run the target once per case to record reference live-outs. These
+   cases are the *training data* the search scores against.
+3. **Search** — Metropolis–Hastings MCMC. Start from an all-`nop` buffer (or a
+   supplied start program), repeatedly copy → mutate (opcode/operand/swap/
+   replace) → score → accept or reject by the Metropolis rule. `--chains K`
+   runs K independent chains and keeps the best. Track the lowest-cost program
+   visited.
+4. **Verify** — the best program's `best_eq` is re-checked at the end:
+   - With `--z3` and Z3 on `PATH`: encode both programs as SMT `QF_BV` formulas
+     and ask whether any input makes a live-out differ. `unsat` = proven
+     equivalent. On `sat`, the model is a counterexample: it is added to the
+     test set and the search resumes from the current best, up to 5 rounds.
+   - Otherwise: re-run the best program on a **fresh, larger** test set (uniform
+     random + small-signed-integer biased) and report `OK (probabilistic)` if
+     every case matches, else `FAILED`.
+5. **Optional baseline** — `--enum` exhaustively enumerates every length-1..N
+   program over the register/immediate pools, filters by the test set, and
+   reports the ground-truth optimum for short targets, so you can check whether
+   MCMC missed it.
+
+`--cost-mode` only changes step 3's performance term; the flow is otherwise
+identical. `--z3` and `--enum` are post-search steps and do not change the
+search itself.
+
+## Caveats
+
+- **Search is stochastic.** Same target with different `--seed` can give
+  different results. Runs are reproducible given the same `--seed`, `--iters`,
+  `--beta`, and `--chains`; sweep a few seeds and keep the best.
+- **Probabilistic verification is not proof.** Without `--z3`, `verify: OK`
+  means "no counterexample in ~8k fresh tests", not equivalence. A wrong program
+  could still pass; use `--z3` when you need certainty.
+- **Uninitialized reads can look like wins.** Registers that are neither
+  live-in nor written by a candidate are set to fresh random values per test, so
+  the search can occasionally "succeed" by reading one. Read the output block
+  and check `best_eq` — do not trust the `verify:` line alone.
+- **No `best_eq == 0` means no answer.** If `best_eq != 0` the reported program
+  is *not* equivalent; no `verify:` line is printed. Lower `--beta`, raise
+  `--iters`, add `--chains`, or try another seed.
+- **`beta` trades exploration vs. greed.** High `β` converges fast but can stick
+  in local minima; low `β` roams but may not settle within `--iters`. See the
+  sections below.
+- **The mutator pool is restricted.** It draws from `live_in ∪ live_out ∪ temps`
+  (and excludes `x0`), so a rewrite that needs a constant must materialize it
+  from the inputs or a touched register rather than `addi rd, x0, k`.
+- **Immediates come from a fixed small pool** (`{0,1,-1,2,4,8,16,31,32,255,
+  2047,-2048}` plus values seen in the target), so some optima are unreachable
+  by design (e.g. `clearlow` cannot reach `andi a0,a0,-2`).
+- **`--chains` is sequential.** Multiple chains improve coverage but cost
+  wall-clock time linearly; there is no threading yet.
+- **The learned model is only valid for its training config.** `--cost-mode 1`
+  predicts cycles for the fixed issue width / ROB / RS configuration the
+  dataset was labeled under; a different microarchitecture needs `make model`
+  regenerated with a matching simulator config.
+- **`--enum` length is capped at 4.** Exhaustive search grows explosively with
+  length; beyond a handful of instructions use MCMC or `--cost-mode`.
 
 ## Running
 
@@ -30,11 +141,15 @@ Options:
 
 | flag | default | meaning |
 |---|---|---|
-| `--iters N`   | 10000 | number of MCMC iterations (metropolis steps) |
+| `--iters N`   | 10000 | number of MCMC iterations per chain (metropolis steps) |
 | `--beta B`    | 1.0   | inverse temperature (see math.md §3). Try `0.5`–`5`. |
-| `--chains C`  | 1     | accepted for CLI-compatibility; **only 1 chain runs today** |
+| `--chains C`  | 1     | run C independent chains and keep the best (sequential today) |
 | `--seed S`    | 12345 | RNG seed for test generation and mutator |
 | `--expr TEXT`, `-e TEXT` | – | compile the expression `TEXT` (see [frontend.md](frontend.md)) and optimize it |
+| `--cost-mode M` | 0 | perf term: 0=insn count, 1=GBDT cycles, 2=bundled sim, 3=Tomasulo sim |
+| `--enum`      | off   | run the exhaustive baseline for short targets |
+| `--enum-max-len N` | 3 | maximum enumerative length (hard cap 4) |
+| `--z3`        | off   | prove equivalence with Z3 and resume on counterexamples |
 
 Examples from the repo:
 
@@ -53,7 +168,7 @@ for f in bench/toy/*.sopt; do echo "=== $f ==="; ./superopt "$f" --iters 300000 
 ## Interpreting the output
 
 ```text
-best_cost=1 best_eq=0 best_perf=1 time=0.1694
+best_cost=1 best_eq=0 best_perf=1 best_insns=1 time=0.1694
 target program (3 insns):
   add x6, x10, x11
   sub x7, x6, x11
@@ -67,7 +182,8 @@ verify: OK (probabilistic) fresh_rand_eq=0
 |---|---|
 | `best_cost` | `1000·eq + perf` of the best program found |
 | `best_eq`   | equivalence distance on the search tests; `0` = equivalent on them |
-| `best_perf` | instruction count of the best program (NOPs excluded) |
+| `best_perf` | performance term of the best program (insns or cycles, per `--cost-mode`) |
+| `best_insns`| instruction count of the best program (NOPs excluded) |
 | `time`      | wall-clock seconds of the MCMC loop |
 | `target program (N insns)` | the input block with NOP filler stripped |
 | `optimized program (N insns)` | the best program found, NOP filler stripped |
@@ -159,8 +275,8 @@ Ground rules that make targets well-posed:
   branches, mul/div, or PC-dependent ops.
 - If an input or output register is *also* used as a scratch register, list it
   in `live_in`/`live_out` so it enters the mutator pool.
-- `--chains` is accepted but not implemented; don't rely on it for better
-  results.
+- `--chains` runs independent chains sequentially; it improves coverage at a
+  linear cost in wall-clock time.
 
 ## Tuning the search
 

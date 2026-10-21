@@ -122,31 +122,91 @@ Properties:
   is a reasonable default; try `0.5…5`.
 - **No proposal correction** — see [math.md](math.md#why-no-proposal-ratio).
 
-Unimplemented STOKE accelerators (arch §4.2, §4.4): two-phase search,
-early-exit on the accept threshold, and parallel chains.
+`--chains K` runs `K` independent chains with distinct proposal and acceptance
+streams, then keeps the best result. Chains run sequentially today, not in
+threads. Two-phase search and early-exit on the accept threshold remain
+unimplemented.
+
+The performance term respects `--cost-mode`:
+
+| mode | `perf` |
+|---|---|
+| 0 | non-NOP instruction count (default) |
+| 1 | gradient-boosted regression-tree cycle prediction |
+| 2 | static bundling cycle count (DAG + list scheduling) |
+| 3 | dynamic Tomasulo + ROB cycle count |
+
+Ties are broken by instruction count, so a cycle-cost run still reports the
+simplest program among equally fast candidates.
 
 ---
 
-## 6. Probabilistic verification
+## 6. Cost oracle: dependency DAG, list scheduling, Tomasulo (`sim.cpp`)
 
-The search's 32 test cases are *training* data and can be overfit (e.g. a
-program that is accidentally right on boundary values). Verification therefore
-uses a **fresh, larger** test set:
+`build_dag` walks the block in program order and emits:
 
-- generate `10 000` cases with `fixed_boundaries=false` (pure random live-ins),
-- re-run `eq_dist` for the best program,
-- report correct only if `eq = 0`.
+- **RAW** edges from the reaching definition of every source register;
+- **WAR** edges from every outstanding reader of a register to its next writer;
+- **WAW** edges from the previous writer to the next writer.
 
-This is the "probabilistically verified" Tier‑1.5 in `architecture.md` §4.5;
-the exact Z3 `QF_BV` tier is future work.
+All edges run from a lower to a higher instruction index, so the DAG is already
+topologically ordered. `dep_depths` uses the RAW subgraph for the learned-model
+feature; the schedulers use the full DAG when `model_waw_war` is true.
+
+**Static bundling** ranks ready instructions by height (longest path to the
+sink, i.e. Hu's critical-path priority), issues up to `issue_width` per cycle,
+and completes each instruction after its opcode latency.
+
+**Dynamic scheduling** models Tomasulo with reservation stations and an
+in-order-commit ROB: instructions issue in program order, capture producer tags
+from a register-status table, execute out of order when those producers
+complete, and commit in order. Register renaming makes WAR/WAW disappear, so
+only RAW edges matter.
 
 ---
 
-## 7. Reference: `architecture.md` roadmap vs. implementations
+## 7. Learned cost model: gradient-boosted trees
+
+`tools/gen_dataset.cpp` labels random dependency-controlled blocks with both
+simulator modes using the same `extract_features` function as runtime inference
+(29 features: instruction count, opcode histogram, dependency depth, peak
+live registers, roots, average dependency distance, WAW/WAR, width estimate).
+
+`tools/train_model.py` fits a histogram-split gradient-boosted ensemble of
+shallow regression trees to squared error, exports the trees to
+`src/model_data.hpp`, and self-checks that the exported traversal matches the
+training predictions. `make model` regenerates the header; `make dataset`
+regenerates its labels.
+
+---
+
+## 8. Exact verification and the counterexample loop
+
+If Z3 is on `PATH` and `--z3` is set, both programs are encoded as SSA `QF_BV`
+formulas. Each instruction becomes a top-level `define-fun`, so later
+definitions can refer to earlier ones without parallel-`let` scoping issues.
+The solver asserts that **at least one** live-out differs:
+
+```text
+(assert (or (not (= target_lo1 candidate_lo1))
+            (not (= target_lo2 candidate_lo2)) ...))
+```
+
+`unsat` proves equivalence. On `sat`, the model's input values become a new
+test case; the search resumes from the current best program against the
+enlarged test set, up to five counterexample rounds. Without Z3 the verifier
+falls back to fresh random plus small-signed-integer tests and reports
+"probabilistically verified".
+
+---
+
+## 9. Reference: `architecture.md` roadmap vs. implementations
 
 | Algorithm (arch) | Status |
 |---|---|
-| enumerative baseline (length ≤ 3) | not implemented |
-| oracle sanity tests (dependency DAG, schedule) | not implemented (no simulator yet) |
-| feature extraction + regression model | not implemented (`use_regression` is a placeholder) |
-| counterexample loop (add failing Z3 case, resume) | not implemented |
+| Metropolis–Hastings MCMC, multi-chain | implemented — `src/mcmc.cpp` |
+| enumerative baseline (length ≤ 4) | implemented — `src/enumerate.cpp` |
+| dependency DAG, list scheduling, Tomasulo | implemented — `src/sim.cpp` |
+| feature extraction + GBDT cost model | implemented — `src/features.cpp`, `tools/` |
+| Z3 `QF_BV` verification + counterexample loop | implemented — `src/verify.cpp` |
+| two-phase search, early-exit, threaded chains | not implemented |

@@ -149,12 +149,13 @@ Z3 `QF_BV` tier that is not yet wired in.
 | Bit-exact interpreter | implemented — `src/interpreter.cpp` |
 | Test generation + graded `eq` | implemented — `src/testgen.cpp`, `src/cost.cpp` |
 | Fixed-length NOP mutator, 4 moves | implemented — `src/mutator.cpp` |
-| MCMC (Metropolis–Hastings) | implemented (single chain) — `src/mcmc.cpp` |
-| `perf = instruction count` (phase A) | implemented |
-| Two-phase search, early exit, K chains | not implemented |
-| Z3 Tier-2 verifier + counterexample loop | not implemented (probabilistic fallback used) |
-| Regression model / simulator oracle | not implemented (`use_regression=false`, cost stays instruction count) |
-| Enumerative baseline, gcc/clang front end | not implemented |
+| MCMC (Metropolis–Hastings) | implemented; `--chains K` runs K independent chains — `src/mcmc.cpp` |
+| `perf = instruction count` (phase A) | implemented (default `--cost-mode 0`) |
+| Two-phase search, early exit | not implemented |
+| Z3 Tier-2 verifier + counterexample loop | implemented (`--z3`), probabilistic fallback without Z3 — `src/verify.cpp` |
+| Regression model / simulator oracle | implemented — `src/sim.cpp`, `src/features.cpp`, `tools/` |
+| Enumerative baseline | implemented (`--enum`) — `src/enumerate.cpp` |
+| gcc/clang front end | not implemented |
 
 The scoreboard above matches the realistic build-order in `architecture.md` §10,
 steps 1–5 (interpreter → tests → eq → mutator → MCMC) with the smoke-test as the

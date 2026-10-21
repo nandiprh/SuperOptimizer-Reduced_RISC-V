@@ -4,6 +4,10 @@
 #include "cost.hpp"
 #include "mutator.hpp"
 #include "mcmc.hpp"
+#include "enumerate.hpp"
+#include "sim.hpp"
+#include "features.hpp"
+#include "verify.hpp"
 #include "frontend.hpp"
 #include <iostream>
 #include <vector>
@@ -73,29 +77,89 @@ static int run_and_report(const ProgramSpec& spec, const MCMCConfig& cfg) {
   init_random_seed(cfg.seed);
   mutator_init_random(cfg.seed);
 
-  auto tests = gen_test_set(spec.code, spec.live_in, spec.live_out, 96, true);
+  int test_count = cfg.test_count > 0 ? cfg.test_count : 96;
+  auto tests = gen_test_set(spec.code, spec.live_in, spec.live_out, test_count, true);
   auto res = run_mcmc(spec, tests, cfg);
 
+  // --- Algorithm 2: Enumerative baseline (ground-truth optimum for short targets) ---
+  EnumerateResult enum_res;
+  if (cfg.do_enum) {
+    EnumerateConfig ecfg;
+    ecfg.max_len = cfg.enum_max_len > 0 ? cfg.enum_max_len : 3;
+    ecfg.test_count = 96;
+    ecfg.verify_survivors = false;
+    enum_res = enumerate_search(spec, tests, ecfg);
+  }
+
   long long target_perf = perf_insn_count(spec.code.data(), (int)spec.code.size());
+  long long best_insns = perf_insn_count(res.best_prog.data(), (int)res.best_prog.size());
   auto insns_word = [](long long n) { return (n == 1 || n == -1) ? "insn" : "insns"; };
   std::cout << "best_cost=" << res.best_cost << " best_eq=" << res.best_eq
-            << " best_perf=" << res.best_perf << " time=" << res.time_sec << "\n";
+            << " best_perf=" << res.best_perf << " best_insns=" << best_insns
+            << " time=" << res.time_sec << "\n";
   std::cout << "target program (" << target_perf << " " << insns_word(target_perf) << "):\n";
   for (const auto& insn : spec.code) {
     if (!is_nop(insn)) std::cout << "  " << format_insn(insn) << "\n";
   }
-  std::cout << "optimized program (" << res.best_perf << " " << insns_word(res.best_perf) << "):\n";
+  std::cout << "optimized program (" << best_insns << " " << insns_word(best_insns) << "):\n";
   for (const auto& insn : res.best_prog) {
     if (!is_nop(insn)) std::cout << "  " << format_insn(insn) << "\n";
   }
+  if (cfg.do_enum) {
+    std::cout << "enumerative tested=" << enum_res.programs_tested
+              << " enum_best_perf=" << enum_res.best_perf
+              << " enum_eq=" << enum_res.best_eq
+              << " enum_time=" << enum_res.time_sec << "\n";
+    if (enum_res.best_eq == 0 && enum_res.best_perf < best_insns) {
+      std::cout << "NOTE: enumerative found shorter correct program (" << enum_res.best_perf
+                << " insns) than MCMC (" << best_insns << ")\n";
+    }
+  }
+
   if (res.best_eq == 0) {
-    // Probabilistic verification: re-score the best program on large FRESH sets
-    // (uniform 32-bit randoms + small-signed-integer bias; Z3 is not wired up).
-    auto vtests = gen_test_set(spec.code, spec.live_in, spec.live_out, 4096, false);
-    auto vtests2 = gen_tight_test_set(spec.code, spec.live_in, spec.live_out, 4096);
-    long long veq = eq_dist(res.best_prog.data(), (int)res.best_prog.size(), vtests, spec.live_out) +
-                    eq_dist(res.best_prog.data(), (int)res.best_prog.size(), vtests2, spec.live_out);
-    std::cout << "verify: " << (veq == 0 ? "OK (probabilistic)" : "FAILED") << " fresh_rand_eq=" << veq << "\n";
+    // --- Algorithm 5: Z3 exact verification + counterexample loop ---
+    if (cfg.do_z3 && z3_available()) {
+      std::vector<TestCase> ce_tests = tests; // mutable test set grows with counterexamples
+      int max_ce_rounds = 5;
+      for (int round = 0; round < max_ce_rounds; round++) {
+        auto vr = z3_verify_equivalent(spec, res.best_prog, spec.live_out);
+        if (vr.equivalent) {
+          std::cout << "verify: OK (Z3-proven, QF_BV)\n";
+          break;
+        }
+        if (vr.status == "sat") {
+          auto ce = z3_counterexample(spec, res.best_prog, spec.live_out);
+          if (!ce.has_value()) {
+            std::cout << "verify: OK (Z3-proven, QF_BV)\n";
+            break;
+          }
+          ce_tests.push_back(*ce);
+          std::cout << "z3 counterexample found; adding to test set (round " << (round + 1) << ")\n";
+          // Resume the search from the current best program, against the enlarged
+          // test set, rather than restarting from an all-NOP buffer.
+          MCMCConfig resume = cfg;
+          resume.init_prog = res.best_prog;
+          resume.seed = cfg.seed + static_cast<unsigned>(round + 1) * 1013u;
+          auto res2 = run_mcmc(spec, ce_tests, resume);
+          if (res2.best_eq == 0) {
+            res = res2;
+          } else {
+            std::cout << "verify: search could not satisfy counterexample; keeping previous candidate\n";
+            break;
+          }
+        } else {
+          std::cout << "verify: Z3 " << vr.status << " (could not prove)\n";
+          break;
+        }
+      }
+    } else {
+      // Probabilistic verification (fresh random tests).
+      auto vtests = gen_test_set(spec.code, spec.live_in, spec.live_out, 4096, false);
+      auto vtests2 = gen_tight_test_set(spec.code, spec.live_in, spec.live_out, 4096);
+      long long veq = eq_dist(res.best_prog.data(), (int)res.best_prog.size(), vtests, spec.live_out) +
+                      eq_dist(res.best_prog.data(), (int)res.best_prog.size(), vtests2, spec.live_out);
+      std::cout << "verify: " << (veq == 0 ? "OK (probabilistic)" : "FAILED") << " fresh_rand_eq=" << veq << "\n";
+    }
   }
   return 0;
 }
@@ -215,9 +279,19 @@ static void print_usage(const char* prog) {
             << "  " << prog << " <file.sopt> [--beta B --iters N --chains C --seed S]\n"
             << "  " << prog << " --expr \"<block>\" [options]     compile+optimize an expression on the go\n"
             << "  " << prog << " [options]                       interactive REPL\n"
+            << "\nOptions:\n"
+            << "  --beta B         inverse temperature (default 1.0)\n"
+            << "  --iters N        MCMC iterations (default 10000)\n"
+            << "  --chains C       accepted; only 1 chain runs today\n"
+            << "  --seed S         RNG seed (default 12345)\n"
+            << "  --cost-mode M    perf term: 0=insn count, 1=regression cycles, 2=bundled sim, 3=Tomasulo sim (default 0)\n"
+            << "  --enum           run enumerative baseline for ground-truth optimum\n"
+            << "  --enum-max-len N max length for enumerative search (default 3)\n"
+            << "  --z3             Z3 QF_BV exact verification + counterexample loop\n"
             << "\nExamples:\n"
             << "  " << prog << " bench/toy/smoke.sopt --iters 300000 --beta 2 --seed 1\n"
-            << "  " << prog << " --expr \"t3 = (a0 + a1) - a1 << 1;\" --iters 300000\n";
+            << "  " << prog << " --expr \"t3 = (a0 + a1) - a1 << 1;\" --iters 300000\n"
+            << "  " << prog << " bench/toy/smoke.sopt --iters 300000 --beta 2 --enum --z3\n";
 }
 
 int main(int argc, char** argv) {
@@ -228,17 +302,6 @@ int main(int argc, char** argv) {
   std::string fname;
   std::string expr;
 
-  for (int i = 1; i < argc; i++) {
-    std::string a = argv[i];
-    if (a == "--beta" && i + 1 < argc) beta = std::stod(argv[++i]);
-    else if (a == "--iters" && i + 1 < argc) iters = std::stoi(argv[++i]);
-    else if (a == "--chains" && i + 1 < argc) chains = std::stoi(argv[++i]);
-    else if (a == "--seed" && i + 1 < argc) seed = static_cast<unsigned int>(std::stoi(argv[++i]));
-    else if ((a == "--expr" || a == "-e") && i + 1 < argc) expr = argv[++i];
-    else if (!a.empty() && a[0] != '-' && fname.empty()) fname = a;
-    else { print_usage(argv[0]); return 1; }
-  }
-
   MCMCConfig cfg;
   cfg.max_iters = iters;
   cfg.chains = chains;
@@ -246,6 +309,30 @@ int main(int argc, char** argv) {
   cfg.beta = beta;
   cfg.test_count = 96;
   cfg.use_regression = false;
+  cfg.cost_mode = 0;
+  cfg.do_enum = false;
+  cfg.enum_max_len = 3;
+  cfg.do_z3 = false;
+
+  for (int i = 1; i < argc; i++) {
+    std::string a = argv[i];
+    if (a == "--beta" && i + 1 < argc) beta = std::stod(argv[++i]);
+    else if (a == "--iters" && i + 1 < argc) iters = std::stoi(argv[++i]);
+    else if (a == "--chains" && i + 1 < argc) chains = std::stoi(argv[++i]);
+    else if (a == "--seed" && i + 1 < argc) seed = static_cast<unsigned int>(std::stoi(argv[++i]));
+    else if ((a == "--expr" || a == "-e") && i + 1 < argc) expr = argv[++i];
+    else if (a == "--enum") cfg.do_enum = true;
+    else if (a == "--enum-max-len" && i + 1 < argc) cfg.enum_max_len = std::stoi(argv[++i]);
+    else if (a == "--z3") cfg.do_z3 = true;
+    else if (a == "--cost-mode" && i + 1 < argc) cfg.cost_mode = std::stoi(argv[++i]);
+    else if (!a.empty() && a[0] != '-' && fname.empty()) fname = a;
+    else { print_usage(argv[0]); return 1; }
+  }
+
+  cfg.max_iters = iters;
+  cfg.chains = chains;
+  cfg.seed = seed;
+  cfg.beta = beta;
 
   if (!expr.empty()) {
     ProgramSpec spec;

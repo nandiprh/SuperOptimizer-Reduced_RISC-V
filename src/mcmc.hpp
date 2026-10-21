@@ -17,7 +17,17 @@ struct MCMCConfig {
   unsigned int seed;
   double beta;
   int test_count;
-  bool use_regression;
+  bool use_regression; // legacy flag; cost_mode is authoritative
+  // Cost mode for the performance term:
+  // 0 = instruction count (default), 1 = regression-predicted cycles,
+  // 2 = bundling-simulator cycles (static), 3 = Tomasulo cycles (dynamic).
+  int cost_mode;
+  // Optional post-search steps
+  bool do_enum;            // run enumerative baseline for ground-truth optimum
+  int enum_max_len;        // max length for enumerative search
+  bool do_z3;              // run Z3 exact verification + counterexample loop
+  // Optional starting point for each chain. Empty => start from all NOPs.
+  std::vector<Insn> init_prog;
 };
 
 struct MCMCResult {

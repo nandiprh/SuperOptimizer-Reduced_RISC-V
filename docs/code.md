@@ -169,24 +169,32 @@ see [math.md](math.md#why-no-proposal-ratio).
 
 ```cpp
 struct MCMCConfig { int max_iters; int chains; unsigned int seed; double beta;
-                    int test_count; bool use_regression; };
+                    int test_count; bool use_regression; int cost_mode;
+                    bool do_enum; int enum_max_len; bool do_z3;
+                    std::vector<Insn> init_prog; };
 struct MCMCResult { std::vector<Insn> best_prog; long long best_cost, best_eq, best_perf; double time_sec; };
 
 MCMCResult run_mcmc(const ProgramSpec& spec, const std::vector<TestCase>& tests, const MCMCConfig& cfg);
 ```
 
-`run_mcmc`:
+`run_mcmc` runs one chain per `cfg.chains`, each seeded from
+`seed + chain_idx·constant` for both the mutator and the acceptance RNG, and
+keeps the best result. Per chain:
 
-1. `cur = [nop; nop; …; nop]` (length `max_len`), `cur_cost = total_cost(cur)`.
+1. `cur = cfg.init_prog` if it matches `max_len`, else `[nop; nop; …; nop]`
+   (length `max_len`); `cur_cost = total_cost(cur)`.
 2. Loop `max_iters` times:
    - `cand = cur; mutate_program(spec, cand.data(), L);`
-   - `cand_eq = eq_dist(...)`, `cand_perf = perf_insn_count(...)`,
+   - `cand_eq = eq_dist(...)`, `cand_perf = perf_cost(...)` per `cost_mode`,
      `cand_cost = 1000·cand_eq + cand_perf`.
    - **Metropolis accept:** if `cand_cost ≤ cur_cost` accept; else draw
      `u ~ Uniform(0,1)` and accept iff `u < exp(-β·(cand_cost - cur_cost))`.
-   - on accept, move; remember the lowest-cost program seen so far.
-3. Return the best program. `cfg.use_regression` is a no-op placeholder;
-   `cfg.chains` is accepted but the loop runs one chain.
+   - on accept, move; remember the lowest-cost program seen so far (ties broken
+     by lower instruction count).
+3. Return the best program over all chains.
+
+`cfg.use_regression` is retained for source compatibility; `cost_mode` selects
+the actual performance term (0 count, 1 GBDT, 2 bundled sim, 3 Tomasulo).
 
 Because cost = `1000·eq + perf`, every correct program outranks every incorrect
 one, so the low-cost optimum the chain samples around is the shortest *correct*

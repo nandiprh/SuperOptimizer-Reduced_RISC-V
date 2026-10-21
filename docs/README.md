@@ -9,8 +9,8 @@ values** for all inputs. Search is **Metropolis–Hastings MCMC** and cost is
 
 This directory is the hand-written companion to the formal design document at
 [`../architecture.md`](../architecture.md). Where this implementation differs
-from the design (e.g. no Z3 yet, no regression model yet), it says so explicitly
-in [process.md](process.md#status-vs-architecture).
+from the design, it says so explicitly in
+[process.md](process.md#status-vs-architecture).
 
 ## Quick Start
 
@@ -21,7 +21,10 @@ make clean && make
 ```
 
 For the full build/run guide, CLI reference and file-format spec see
-[running.md](running.md).
+[running.md](running.md). That page also covers
+[what is being optimized](running.md#what-is-being-optimized),
+[how the flow works](running.md#how-it-handles-the-flow), and
+[caveats](running.md#caveats).
 
 ## Documentation Map
 
@@ -63,9 +66,15 @@ Fully implemented today:
 - Probabilistic verification on fresh random **and** small-signed-integer tests
   before reporting
 
-Deferred (see `architecture.md` lines 194, 274–310):
+Implemented beyond the core search:
 
-- Z3 `QF_BV` exact verification (Tier 2) — current verification is probabilistic
-- Multi-chain parallel search (`--chains` is accepted but only 1 chain runs)
-- Regression model + feature extractor / simulator-based cost oracle
-- Enumerative baseline and `gcc`/`clang` front end
+- Z3 `QF_BV` exact verification (`--z3`) with a counterexample-guided refine loop
+- Multi-chain search (`--chains K`, sequential chains today)
+- Enumerative baseline (`--enum`)
+- Dependency DAG + list scheduling + Tomasulo cost oracle (`--cost-mode 2/3`)
+- Gradient-boosted regression-tree cost model (`--cost-mode 1`; see `make model`)
+
+Still deferred:
+
+- Threaded/parallel chains and early-exit search
+- `gcc`/`clang` basic-block front end
