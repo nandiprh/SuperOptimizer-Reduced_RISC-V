@@ -1,0 +1,20 @@
+# Long worked example: a 10-instruction block whose live-out is NOT the
+# identity, so the optimizer must return a visible non-empty program.
+#
+# The chain cancels down to t3 = a0 << 1 (2*a0):
+#   (a+b)-b = a, (a^b)^b = a, ~~a = a, add-zero/or-zero no-ops, then a<<1.
+#
+# live_in a0=a, a1=b. Expected optimum: 1 insn, add t3,a0,a0 (or slli t3,a0,1).
+live_in: {a0, a1}
+live_out: {t3}
+code:
+add  t0, a0, a1
+sub  t1, t0, a1      # t1 = a0
+xor  t2, t1, a1
+xor  t1, t2, a1      # t1 = a0
+xori t2, t1, -1
+xori t1, t2, -1      # t1 = a0
+addi t2, t1, 0       # t2 = a0   (add-zero no-op)
+or   t1, t2, x0      # t1 = a0   (or-zero no-op)
+slli t2, t1, 1       # t2 = 2*a0
+add  t3, t2, x0      # t3 = 2*a0

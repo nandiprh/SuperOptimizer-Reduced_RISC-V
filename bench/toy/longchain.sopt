@@ -1,0 +1,35 @@
+# Long worked example: a 20-instruction block that is the IDENTITY on a0.
+# Every line is a legal v1 opcode; the whole chain algebraically cancels, so
+# the cheapest correct program is the empty buffer (0 instructions).
+#
+# The chain mixes five rewrite families the search must discover:
+#   (a+b)-b = a          add / sub cancellation
+#   (a^b)^b = a          xor cancellation
+#   (a&b)|(a&b) = a&b    and/or idempotence
+#   ((a>>k)<<k) ...      shift round-trips through a mask
+#   ~~a = a, a|0 = a     double negation / or-zero
+#
+# live_in a0=a, a1=b. Optimizer should reach best_eq=0 with 0 insns.
+live_in: {a0, a1}
+live_out: {a0}
+code:
+add  t0, a0, a1      # t0 = a + b
+sub  t1, t0, a1      # t1 = a
+xor  t2, t1, a1      # t2 = a ^ b
+xor  t3, t2, a1      # t3 = a
+and  t4, t3, a1      # t4 = a & b
+and  t5, t3, a1      # t5 = a & b
+or   t6, t4, t5      # t6 = a & b   (idempotence)
+slli s0, t1, 3       # s0 = a << 3
+srli s1, s0, 3       # s1 = (a << 3) >> 3
+srai s2, s1, 0       # s2 = s1       (shift-by-zero no-op)
+xori s3, t3, -1      # s3 = ~a
+xori s4, s3, -1      # s4 = ~~a = a
+addi s5, s4, 0       # s5 = a        (add-zero no-op)
+or   s6, s5, x0      # s6 = a | 0 = a
+slti s7, s6, -2048   # s7 = (a < -2048) ? 1 : 0   (side value, dead-ish)
+sltiu s8, s7, 1      # s8 = (s7 <u 1) ? 1 : 0
+add  s9, s6, s8      # s9 = a + s8   (s8 in {0,1})
+sub  s10, s9, s8     # s10 = a
+xor  s11, s10, x0    # s11 = a
+slli a0, s11, 0      # a0 = a << 0 = a

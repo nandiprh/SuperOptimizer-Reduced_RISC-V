@@ -1,0 +1,34 @@
+# Worked example where the enumerative baseline and MCMC DISAGREE.
+#
+# The block is  a0 = (a0 << 24) >> 24  ==  a0 & 255  (zero-extend the low byte),
+# dressed up with add-zero / or-zero / ~~a identites so the chain is long.
+#
+#   optimum           : 1 insn   andi a0, a0, 255      <-- enumerative finds it
+#   MCMC reachable     : 3-7 insns (it gets stuck in a local minimum; the
+#                        single-move walk cannot cross the valley to the 1-insn
+#                        form without first accepting strictly worse programs)
+#
+# Run both on the same target (a SMALL budget makes the divergence reliable,
+# because MCMC gets trapped before it finds the 1-insn form):
+#   ./superopt bench/toy/divergence.sopt --iters 3000 --beta 2 --seed 1
+#   ./superopt bench/toy/divergence.sopt --iters 3000 --beta 2 --seed 1 \
+#       --enum --enum-max-len 2
+# The second run prints a NOTE that enumerative found a shorter correct program.
+#
+# Expect at --iters 3000: enumerative enum_best_perf=1, enum_eq=0 on every seed;
+# MCMC best_insns = 3..7 (on some seeds it even fails to reach eq=0).
+# Raise --iters and MCMC eventually catches up: the point is that the
+# enumerative baseline is the ground truth MCMC is checked against.
+live_in: {a0}
+live_out: {a0}
+code:
+add  t0, a0, x0      # t0 = a0        (add-zero no-op)
+addi t0, t0, 0       # t0 = a0        (addi-zero no-op)
+or   t1, t0, x0      # t1 = a0        (or-zero no-op)
+xori t2, t1, -1      # t2 = ~a0
+xori t1, t2, -1      # t1 = a0        (double negation)
+slli t2, t1, 24      # t2 = a0 << 24
+srli t3, t2, 24      # t3 = (a0 << 24) >> 24 = a0 & 255
+xor  t3, t3, x0      # t3 = a0 & 255
+slti t4, t3, 0       # t4 = 0         (a0&255 is never negative)
+sub  a0, t3, t4      # a0 = a0 & 255
