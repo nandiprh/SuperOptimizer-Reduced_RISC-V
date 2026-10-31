@@ -147,9 +147,20 @@ Options:
 | `--seed S`    | 12345 | RNG seed for test generation and mutator |
 | `--expr TEXT`, `-e TEXT` | – | compile the expression `TEXT` (see [frontend.md](frontend.md)) and optimize it |
 | `--cost-mode M` | 0 | perf term: 0=insn count, 1=GBDT cycles, 2=bundled sim, 3=Tomasulo sim |
-| `--enum`      | off   | run the exhaustive baseline for short targets |
+| `--algo A`    | mcmc  | search strategy: `mcmc`, `adaptive`, `hc`, or `enum` |
+| `--enum`      | off   | run the exhaustive baseline for short targets (after MCMC) |
 | `--enum-max-len N` | 3 | maximum enumerative length (hard cap 4) |
+| `--target-accept R` | 0.234 | adaptive MCMC target acceptance rate |
+| `--adapt-window N` | 200 | proposals per adaptive-temperature update |
+| `--adapt-gain G` | 1.0 | log-space gain of the adaptive β update |
+| `--hc-stall N` | 1000 | HC-MCMC iterations without a new best before a kick |
+| `--hc-kick N` | 4 | random mutations applied by an HC-MCMC kick |
 | `--z3`        | off   | prove equivalence with Z3 and resume on counterexamples |
+
+`--algo enum` runs enumeration as the search itself (no MCMC). Without it,
+`--enum` only prints the exhaustive ground-truth baseline next to the MCMC
+result. The three strategies are independent runs; see
+[`algorithms.md`](algorithms.md).
 
 Examples from the repo:
 
@@ -165,10 +176,65 @@ For fast run-through of every example:
 for f in bench/toy/*.sopt; do echo "=== $f ==="; ./superopt "$f" --iters 300000 --beta 2.0 --seed 123; done
 ```
 
+Run the same target with each search strategy separately:
+
+```bash
+./superopt bench/toy/divergence.sopt --algo adaptive --iters 300000 --beta 2
+./superopt bench/toy/divergence.sopt --algo hc       --iters 300000
+./superopt bench/toy/divergence.sopt --algo enum     --enum-max-len 4
+```
+
+### Benchmarking the three search strategies
+
+The full comparison tables, target families, and the exact point where each
+strategy wins are in [benchmark.md](benchmark.md). The short version:
+
+- `enum` wins for shallow solutions (`N ≤ 2`) and any long target whose optimum
+  is 1 instruction: exact and ~0s.
+- `hc` wins at required depth 3 (all methods optimal, HC fastest) and is more
+  robust than adaptive at `P = 20–24` and `P ≥ 28` on long shallow buffers.
+- `adaptive` wins for deep solutions (`N ≥ 5`), where HC's greedy descent gets
+  trapped.
+- At required depth 4 enumeration times out and both MCMC variants win; at very
+  long buffers (`P ≥ 28`) even MCMC starts missing seeds, while enumeration is
+  still exact for the shallow optimum.
+
+`tools/benchmark_search.py` generates targets with *provable* optima and runs
+`enum`, `adaptive`, and `hc` separately, then reports success/optimality and
+the breaking point of each strategy:
+
+```bash
+make bench-search
+# or with a custom budget:
+python3 tools/benchmark_search.py --budget 300000 --seeds 3 \
+    --out results/search_benchmark.csv
+```
+
+Two families are used:
+
+- `multi N`: `N` independent live-outs each doubled. The optimum is exactly
+  `N` instructions, so it stresses the *required search depth*.
+- `padded P`: a length-`P` chain of algebraic identities then one real
+  instruction. The optimum is always 1, so it stresses the *buffer/target
+  length* while enumeration remains trivially fast.
+
+The default run (300k MCMC iterations, 3 seeds, 8s enum timeout) and the full
+tables are in [benchmark.md](benchmark.md#4-results). The main crossings are:
+
+- required depth 1–2: `enum` exact and ~0s (MCMC ~0.3s);
+- required depth 3: all optimal, `hc` fastest (0.72s vs adaptive 0.83s vs enum
+  1.36s);
+- required depth 4: `enum` times out, both MCMC variants succeed;
+- required depth 5–8: `adaptive` succeeds on 1.00/0.67/1.00/0.67 seeds, while
+  `hc` drops to 0.33/0.00/0.00/0.00;
+- long shallow targets (`padded P`): `enum` stays exact at ~0s for every `P`;
+  `hc` beats adaptive at `P = 20–24`, and by `P = 28–30` both MCMC variants
+  start missing seeds.
+
 ## Interpreting the output
 
 ```text
-best_cost=1 best_eq=0 best_perf=1 best_insns=1 time=0.1694
+algo=mcmc best_cost=1 best_eq=0 best_perf=1 best_insns=1 time=0.1694
 target program (3 insns):
   add x6, x10, x11
   sub x7, x6, x11
@@ -180,6 +246,7 @@ verify: OK (probabilistic) fresh_rand_eq=0
 
 | token | meaning |
 |---|---|
+| `algo` | search strategy that produced this result (`mcmc`, `adaptive`, `hc`, `enum`) |
 | `best_cost` | `1000·eq + perf` of the best program found |
 | `best_eq`   | equivalence distance on the search tests; `0` = equivalent on them |
 | `best_perf` | performance term of the best program (insns or cycles, per `--cost-mode`) |

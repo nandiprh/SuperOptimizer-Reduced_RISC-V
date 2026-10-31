@@ -127,6 +127,50 @@ streams, then keeps the best result. Chains run sequentially today, not in
 threads. Two-phase search and early-exit on the accept threshold remain
 unimplemented.
 
+Three search strategies share this driver and are selected with `--algo`; they
+are applied separately, never chained in one process:
+
+| `--algo` | strategy | acceptance rule |
+|---|---|---|
+| `mcmc` (default) | fixed-temperature Metropolis–Hastings | `min(1, exp(-β·Δ))` with `--beta` |
+| `adaptive` | adaptive-temperature MCMC | same rule, but `β` is adapted online |
+| `hc` | HC-MCMC (greedy hill climbing + kicks) | accept iff `Δ ≤ 0` |
+| `enum` | enumerative search only (`--enum-max-len`) | exact, no sampling |
+
+**Adaptive MCMC.** The proposal stream is unchanged; only the inverse
+temperature is adapted. Every `--adapt-window` proposals (default 200), the
+observed acceptance rate `a` is compared with `--target-accept` (default
+0.234) and β is updated multiplicatively:
+
+```text
+β ← clamp( β · exp( gain · (a − target) ), β_min, β_max )
+```
+
+This removes the need to hand-tune `--beta` per target: if the chain rejects
+too much, β falls and exploration increases; if it accepts almost everything,
+β rises and the walk becomes greedier. Defaults: gain 1.0, window 200,
+β ∈ [1e-3, 1e3].
+
+**HC-MCMC.** Hill climbing accepts only non-worsening moves (`Δ ≤ 0`), so
+equal-cost plateau moves are allowed but uphill moves are not. If no new best
+has been seen for `--hc-stall` iterations (default 1000), the chain is kicked:
+it restarts from the incumbent best, applies `--hc-kick` random mutations
+(default 4) unconditionally, and resumes greedy descent. The kick is the
+"MCMC" escape mechanism; the descent itself stays greedy. This is fast on
+short/easy targets but is more prone to local minima than adaptive MCMC on
+deep or deceptive ones.
+
+**Enumerative search as a strategy.** `--algo enum` runs
+`enumerate_search()` as the search itself, rather than as a post-MCMC baseline.
+It is exact and extremely fast when the shortest correct program is short, but
+its cost grows explosively with that length (hard cap 4). Enumeration keeps
+the instruction-count objective; `--cost-mode` only changes the MCMC perf term.
+`--algo mcmc` with `--enum` keeps `--enum` as the optional ground-truth baseline
+printed after the MCMC result. See the measured crossover and the point where
+each strategy wins in [benchmark.md](benchmark.md); the raw per-seed data is in
+[`../results/search_benchmark.csv`](../results/search_benchmark.csv) and the
+harness is `tools/benchmark_search.py`.
+
 The performance term respects `--cost-mode`:
 
 | mode | `perf` |
@@ -205,7 +249,10 @@ falls back to fresh random plus small-signed-integer tests and reports
 | Algorithm (arch) | Status |
 |---|---|
 | Metropolis–Hastings MCMC, multi-chain | implemented — `src/mcmc.cpp` |
-| enumerative baseline (length ≤ 4) | implemented — `src/enumerate.cpp` |
+| adaptive-temperature MCMC (`--algo adaptive`) | implemented — `src/mcmc.cpp` |
+| HC-MCMC, greedy + stagnation kicks (`--algo hc`) | implemented — `src/mcmc.cpp` |
+| enumerative search, standalone (`--algo enum`) or baseline (`--enum`) | implemented — `src/enumerate.cpp` |
+| search-strategy benchmark / breaking-point finder | implemented — `tools/benchmark_search.py` |
 | dependency DAG, list scheduling, Tomasulo | implemented — `src/sim.cpp` |
 | feature extraction + GBDT cost model | implemented — `src/features.cpp`, `tools/` |
 | Z3 `QF_BV` verification + counterexample loop | implemented — `src/verify.cpp` |

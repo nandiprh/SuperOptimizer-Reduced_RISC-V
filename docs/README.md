@@ -34,7 +34,8 @@ For the full build/run guide, CLI reference and file-format spec see
 | [format.md](format.md) | The `.sopt` file format, the register/immediate conventions, and a worked example. |
 | [code.md](code.md) | Module-by-module walkthrough of every source file in `src/`. |
 | [algorithms.md](algorithms.md) | The algorithms: test generation, interpreter semantics, mutator moves, MCMC search loop, probabilistic verification. |
-| [math.md](math.md) | The mathematics: graded correctness distance, cost function, Metropolis–Hastings acceptance, stationarity, why the moves need no proposal-ratio correction. |
+| [math.md](math.md) | The mathematics: graded correctness distance, cost function, Metropolis–Hastings acceptance, adaptive β and HC-MCMC limits, enumeration complexity, benchmark metrics. |
+| [benchmark.md](benchmark.md) | Run instructions and comparison of `enum`, `adaptive`, and `hc`, with the point where each strategy outperforms the others. |
 | [MCMC.md](MCMC.md) | Deeper MCMC explainer: how the random walk works, why it is *not* a tree/graph search, a worked trace, and planned extensions. |
 | [frontend.md](frontend.md) | The C-like expression frontend (`--expr` / interactive REPL): language, codegen notes, and the REPL command reference. |
 | [running.md](running.md) | How to build and run, CLI options, output interpretation, examples, and how to write your own targets. |
@@ -70,7 +71,9 @@ Implemented beyond the core search:
 
 - Z3 `QF_BV` exact verification (`--z3`) with a counterexample-guided refine loop
 - Multi-chain search (`--chains K`, sequential chains today)
-- Enumerative baseline (`--enum`)
+- Adaptive-temperature MCMC (`--algo adaptive`) and HC-MCMC (`--algo hc`)
+- Enumerative search as a standalone strategy (`--algo enum`) or baseline (`--enum`)
+- Search-strategy benchmark with provable optima (`make bench-search`)
 - Dependency DAG + list scheduling + Tomasulo cost oracle (`--cost-mode 2/3`)
 - Gradient-boosted regression-tree cost model (`--cost-mode 1`; see `make model`)
 

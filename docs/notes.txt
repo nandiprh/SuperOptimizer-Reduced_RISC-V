@@ -1,0 +1,290 @@
+WHERE AND HOW THE 5 ALGORITHMS ARE APPLIED
+==========================================
+
+review2-doc.pdf "Algorithms Used" lists five algorithms:
+
+  1. Metropolis-Hastings MCMC search          (search)
+  2. Enumerative search                        (search, baseline)
+  3. Dependency DAG + list scheduling +        (cost oracle)
+     Tomasulo
+  4. Gradient-boosted regression trees         (learned cost)
+  5. SMT equivalence checking +                (verify)
+     counterexample loop
+
+Below is where each one lives in the code, how it is invoked, and how it fits
+into the pipeline. Entry point for everything is run_and_report() in
+src/main.cpp:76.
+
+
+--------------------------------------------------------------------------
+SHARED PIPELINE (what happens on every run)
+--------------------------------------------------------------------------
+
+  src/main.cpp  run_and_report()
+    - init RNGs (testgen + mutator) with --seed
+    - gen_test_set(...)                 : build the training test set   [A1]
+    - run_mcmc(...)                     : Algorithm 1
+    - if --enum: enumerate_search(...)  : Algorithm 2
+    - print best_cost / best_eq / perf
+    - if best_eq == 0:
+        * if --z3 and z3 on PATH:       : Algorithm 5
+        * else: probabilistic re-test
+
+Cost used by the search is defined in src/mcmc.cpp:
+  total_cost = 1000 * eq_distance + perf
+  eq_distance            -> src/cost.cpp  (Algorithm "correctness", not in the 5)
+  perf                   -> selected by --cost-mode:
+      mode 0  instruction count         (perf_insn_count, src/cost.cpp)
+      mode 1  GBDT prediction           <- Algorithm 4
+      mode 2  static bundling cycles    <- Algorithm 3
+      mode 3  Tomasulo cycles           <- Algorithm 3
+
+
+--------------------------------------------------------------------------
+ALGORITHM 1 - METROPOLIS-HASTINGS MCMC SEARCH
+--------------------------------------------------------------------------
+
+WHERE
+  src/mcmc.cpp        implementation (run_mcmc + run_chain)
+  src/mcmc.hpp        MCMCConfig / MCMCResult
+  src/mutator.cpp     the proposal distribution (4 symmetric moves)
+  src/main.cpp        calls run_mcmc() at main.cpp:82
+
+HOW
+  cur = all-nop buffer of length spec.max_len
+  for max_iters:
+      cand = copy(cur); mutate_program(spec, cand, L)   [mutator.cpp]
+      dc   = total_cost(cand) - total_cost(cur)
+      accept if dc <= 0, else accept with prob exp(-beta * dc)
+      on accept move to cand; remember lowest-cost program visited
+
+  The proposal is SYMMETRIC, so no Hastings correction is needed and the
+  acceptance test is the plain Metropolis rule (see docs/math.md).
+
+APPLIED BY
+  Default search path. Always runs. --chains K runs K independent chains
+  (each seeded seed + k*constant) and keeps the best result.
+  --beta and --iters tune exploration vs. greed.
+  --cost-mode decides what "cost" means, i.e. whether the MCMC is guided by
+  instruction count, the GBDT model, or the simulator.
+
+
+--------------------------------------------------------------------------
+ALGORITHM 2 - ENUMERATIVE SEARCH (BASELINE)
+--------------------------------------------------------------------------
+
+WHERE
+  src/enumerate.cpp   enumerate_search()
+  src/enumerate.hpp   EnumerateConfig / EnumerateResult
+  src/main.cpp        called at main.cpp:91 when cfg.do_enum is set
+
+HOW
+  For len = 1..max_len (hard cap 4):
+    generate every sequence over the register pool x immediate pool,
+    prune dead writes (backward-use), canonicalize commutative operands,
+    filter each survivor with a small test set (eq_dist == 0),
+    optional fresh-test re-check (cfg.verify_survivors),
+    keep the shortest correct program.
+  Length 0 (empty buffer) is tried first to catch identity targets.
+
+APPLIED BY
+  Not run by default. Enable with --enum (and --enum-max-len N).
+  It is the ground-truth baseline: if MCMC cannot match the enumerated
+  optimum on a short target, the search is wrong.
+
+  Caveat: exhaustive size grows explosively with length, hence the cap of 4.
+
+
+--------------------------------------------------------------------------
+ALGORITHM 3 - DEPENDENCY DAG, LIST SCHEDULING AND TOMASULO (COST ORACLE)
+--------------------------------------------------------------------------
+
+WHERE
+  src/sim.cpp         all of it
+    build_dag()       dependency DAG (RAW + WAR + WAW edges)
+    dep_depths()      longest RAW chain (also a feature, see Algo 4)
+    compute_heights() longest path to sink (Hu's critical-path priority)
+    run_bundled()     static bundling + height-ranked list scheduling
+    run_tomasulo()    dynamic scheduling, reservation stations + ROB
+    sim_cycles()      dispatch on SimMode (BUNDLED / DYNAMIC)
+  src/sim.hpp         SimConfig / SimMode / SimResult
+  src/mcmc.cpp        called from perf_cost() when cost_mode is 2 or 3
+
+HOW
+  Two schedulers over the same instruction stream:
+
+  BUNDLED (mode 2): each ready instruction ranked by height (longest path to
+    the end of the block), up to issue_width packed per cycle, completion
+    after opcode latency.
+
+  DYNAMIC (mode 3): Tomasulo. Instructions issue in program order into
+    reservation stations, capture producer tags, execute out of order when
+    those producers finish, commit in order from the ROB. Register renaming
+    removes WAR/WAW, so only RAW edges matter.
+
+APPLIED BY
+  Two roles:
+    1. Cost oracle: --cost-mode 2 or 3 makes MCMC minimize simulated cycles
+       instead of instruction count.
+    2. Feature source: the RAW dependency depth and name-dependence counts
+       feed the GBDT model (Algorithm 4).
+
+  The output is a cycle count per candidate; the MCMC uses it as the "perf"
+  term of total_cost. This is what lets the search prefer a program that is
+  not merely shorter but hides latency better.
+
+
+--------------------------------------------------------------------------
+ALGORITHM 4 - GRADIENT-BOOSTED REGRESSION TREES (LEARNED COST MODEL)
+--------------------------------------------------------------------------
+
+WHERE
+  src/features.cpp        extract_features() + features_to_vector()  (29 feats)
+  src/features.hpp        BlockFeatures
+  src/model_gen.hpp       GBDTModel + model_predict() (tree traversal)
+  src/model_data.hpp      the trained trees (generated)
+  tools/gen_dataset.cpp   labels random blocks with the simulator  (source A)
+  tools/train_model.py    fits the GBDT, exports model_data.hpp
+  src/mcmc.cpp            called from perf_cost() when cost_mode == 1
+
+HOW
+  Training (offline, not on the hot path):
+    1. tools/gen_dataset generates random dependency-controlled blocks,
+       computes features with the SAME C++ feature function used at runtime,
+       and labels each with sim_cycles() (both modes).
+    2. tools/train_model.py fits an additive ensemble of shallow regression
+       trees to the residual (squared error), then exports every tree as
+       {feature_idx, threshold, left, right, value} nodes.
+
+  Inference (hot path):
+    model_predict() walks each tree (feature <= threshold ? left : right),
+    sums leaf values plus the base mean. No allocation.
+
+APPLIED BY
+  --cost-mode 1 uses predict_cycles() as the MCMC perf term, so search no
+  longer runs the simulator at every step (cheaper than Algorithm 3).
+  Falls back to n_insns + dep_depth if no trained model is present.
+
+  Sanity: the export self-check in tools/train_model.py asserts the C++
+  traversal matches the training predictions (max diff 0.0).
+
+
+--------------------------------------------------------------------------
+ALGORITHM 5 - SMT EQUIVALENCE CHECKING + COUNTEREXAMPLE LOOP
+--------------------------------------------------------------------------
+
+WHERE
+  src/verify.cpp      z3_verify_equivalent(), z3_counterexample(),
+                      encode_program(), z3_available()
+  src/verify.hpp      VerifyResult
+  src/main.cpp        the counterexample loop at main.cpp:119-154
+
+HOW
+  encode_program() emits SSA SMT-LIB2 for one program: each instruction
+  becomes a top-level (define-fun ...) over 32-bit bitvectors (theory QF_BV);
+  both target and candidate share the same input symbols. The assertion is:
+
+      (assert (or (not (= target_lo candidate_lo)) ...))   ; any live-out differs
+
+  unsat  -> proven equivalent
+  sat    -> a counterexample input is returned
+
+  Counterexample-guided loop (main.cpp):
+      while rounds < 5:
+          vr = z3_verify_equivalent(best)
+          if unsat: report "OK (Z3-proven, QF_BV)"; stop
+          if sat:
+              add the counterexample to the test set
+              resume MCMC from the current best (cfg.init_prog = best)
+              against the enlarged test set
+          else: report "Z3 unknown"
+
+APPLIED BY
+  Only when --z3 is passed AND the z3 binary is on PATH. It is the exact
+  final check that upgrades a probabilistically-correct program to a proven
+  one, and it feeds failing inputs back into Algorithm 1.
+
+  Fallback (no z3): verify on 4096 fresh uniform-random + 4096 small-signed
+  tests and report "OK (probabilistic)" or "FAILED". This is NOT a proof.
+
+
+--------------------------------------------------------------------------
+HOW THEY CONNECT
+--------------------------------------------------------------------------
+
+  Algorithm 3 (sim)  --labels-->  Algorithm 4 (GBDT)
+        |                               |
+        |  --cost-mode 2/3              |  --cost-mode 1
+        v                               v
+  +-------------------------------------------------+
+  |            Algorithm 1: MCMC search             |<-- mutator proposals
+  +-------------------------------------------------+
+        |
+        | best program (best_eq == 0)
+        v
+  Algorithm 5 (Z3)  --sat/counterexample-->  back into Algorithm 1
+        |
+        | unsat
+        v
+     PROVEN EQUIVALENT
+
+  Algorithm 2 (enum) runs beside Algorithm 1 as a ground-truth baseline on
+  short targets.
+
+  Data flow for the learned model:
+    sim (Algo 3) --cycle labels--> dataset --fit--> trees (Algo 4)
+    --predict_cycles--> perf term inside Algo 1.
+
+
+--------------------------------------------------------------------------
+MINIMAL REPRO COMMANDS
+--------------------------------------------------------------------------
+
+  # Algo 1 only, optimise instruction count
+  ./superopt bench/toy/smoke.sopt --iters 300000 --beta 2 --seed 123
+
+  # Algo 1 + Algo 3 (Tomasulo cycles as cost)
+  ./superopt bench/toy/smoke.sopt --cost-mode 3 --iters 300000 --beta 2
+
+  # Algo 1 + Algo 4 (learned cycles as cost; needs make model first)
+  make model && make
+  ./superopt bench/toy/smoke.sopt --cost-mode 1 --iters 300000 --beta 2
+
+  # Algo 1 + Algo 2 (enumerative baseline) + Algo 5 (Z3)
+  ./superopt bench/toy/smoke.sopt --enum --enum-max-len 2 --z3 --iters 300000
+
+
+--------------------------------------------------------------------------
+SEPARATE SEARCH STRATEGIES (--algo) AND BREAKING-POINT BENCHMARK
+--------------------------------------------------------------------------
+
+The three search strategies are selected with --algo and run independently:
+
+  --algo mcmc       fixed-beta Metropolis-Hastings (default; Algorithm 1)
+  --algo adaptive   adaptive-beta MCMC: beta tracks --target-accept
+  --algo hc         HC-MCMC: greedy descent + stagnation-triggered kicks
+  --algo enum       enumerative search as the search itself (not a baseline)
+
+Source:
+  src/mcmc.cpp        all MCMC variants share run_chain/run_mcmc
+  src/enumerate.cpp   exhaustive search (hard cap 4)
+  src/main.cpp        --algo dispatch; --algo enum skips MCMC
+  tools/benchmark_search.py + make bench-search
+                      run the three strategies on targets with provable optima
+
+Repro:
+
+  ./superopt bench/toy/divergence.sopt --algo adaptive --iters 300000 --beta 2
+  ./superopt bench/toy/divergence.sopt --algo hc       --iters 300000
+  ./superopt bench/toy/divergence.sopt --algo enum     --enum-max-len 4
+
+  make bench-search   # writes results/search_benchmark.csv
+
+Measured breaking points (300k MCMC iterations, 3 seeds):
+  - enum is exact and fastest for required length <= 3 (1.3 s at length 3);
+    at length 4 it times out, and the hard cap makes length > 4 unreachable.
+  - adaptive MCMC overtakes enum at required length 4 and stays best on deep
+    targets (lengths 5-8); HC-MCMC collapses there (0/3 seeds at lengths 6-8).
+  - on long shallow targets (identity padding + a 1-instruction optimum), enum
+    still wins instantly while both MCMC variants eventually need >300k
+    iterations (~29-instruction buffers) to find a correct program.

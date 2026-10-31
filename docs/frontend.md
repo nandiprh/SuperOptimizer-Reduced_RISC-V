@@ -105,7 +105,7 @@ with `live_in = {a0}`.
 
 ```
 sopt> t3 = (a0 + a1) - a1 << 1;
-best_cost=1 best_eq=0 best_perf=1 time=0.0251
+algo=mcmc best_cost=1 best_eq=0 best_perf=1 time=0.0251
 target program (3 insns):
   add x6, x10, x11
   sub x7, x6, x11

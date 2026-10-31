@@ -13,6 +13,7 @@ Start with [`docs/README.md`](docs/README.md).
 - [docs/code.md](docs/code.md) — module-by-module code walkthrough
 - [docs/algorithms.md](docs/algorithms.md) — algorithms used
 - [docs/math.md](docs/math.md) — the mathematics behind cost and MCMC
+- [docs/benchmark.md](docs/benchmark.md) — comparison of enum, adaptive MCMC, and HC-MCMC
 - [docs/running.md](docs/running.md) — how to build and run
 - [architecture.md](architecture.md) — formal design / target specification
 
@@ -26,7 +27,7 @@ make
 Output (the smoke target `t3 = ((a0+a1)-a1)<<1` reduces to one instruction):
 
 ```text
-best_cost=1 best_eq=0 best_perf=1 time=0.1196
+algo=mcmc best_cost=1 best_eq=0 best_perf=1 best_insns=1 time=0.4291
 best program:
 nop
 nop

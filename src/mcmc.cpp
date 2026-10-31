@@ -38,14 +38,6 @@ long long perf_cost(const Insn* prog, int n, const std::vector<int>& live_out,
   }
 }
 
-long long total_cost(const Insn* prog, int n, const std::vector<TestCase>& tests,
-                     const std::vector<int>& live_out, const MCMCConfig& cfg) {
-  long long eqv = cost_eq_only(prog, n, tests, live_out);
-  long long perv = perf_cost(prog, n, live_out, cfg);
-  // eq dominates so correctness > performance lexicographically
-  return eqv * 1000LL + perv;
-}
-
 struct ChainState {
   std::vector<Insn> cur;
   long long cost = 0;
@@ -66,56 +58,119 @@ void run_chain(const ProgramSpec& spec, const std::vector<TestCase>& tests,
   std::mt19937 rng(cfg.seed + static_cast<unsigned>(chain_idx) * 104729u + 17u);
   std::uniform_real_distribution<double> urand(0.0, 1.0);
 
+  auto score = [&](const std::vector<Insn>& p, long long& c, long long& e, long long& pf) {
+    e = cost_eq_only(p.data(), L, tests, spec.live_out);
+    pf = perf_cost(p.data(), L, spec.live_out, cfg);
+    c = e * 1000LL + pf;
+  };
+  // Prefer a lower cost; break ties by instruction count so a cycle-cost run
+  // still reports the simplest program among equally fast bundles.
+  auto new_best = [&](long long cost, long long eq, long long perf, long long insns) {
+    if (cost < st.best_cost || (cost == st.best_cost && insns < st.best_insns)) {
+      st.best = st.cur;
+      st.best_cost = cost;
+      st.best_eq = eq;
+      st.best_perf = perf;
+      st.best_insns = insns;
+      return true;
+    }
+    return false;
+  };
+
   st.cur.assign(L, make_nop());
   if (static_cast<int>(cfg.init_prog.size()) == L) st.cur = cfg.init_prog;
 
-  st.cost = total_cost(st.cur.data(), L, tests, spec.live_out, cfg);
-  st.eq = cost_eq_only(st.cur.data(), L, tests, spec.live_out);
-  st.perf = perf_cost(st.cur.data(), L, spec.live_out, cfg);
+  score(st.cur, st.cost, st.eq, st.perf);
   st.best = st.cur;
   st.best_cost = st.cost;
   st.best_eq = st.eq;
   st.best_perf = st.perf;
   st.best_insns = perf_insn_count(st.cur.data(), L);
 
+  // Adaptive temperature state.
+  double beta = cfg.beta;
+  int window_proposals = 0;
+  int window_accepts = 0;
+  int since_improve = 0;
+
   for (int iter = 0; iter < cfg.max_iters; iter++) {
+    // HC-MCMC: when greedy descent has stalled, kick the incumbent best with a
+    // few random mutations and keep climbing from there. This is the "MCMC"
+    // half of the hybrid: the kick is an unconditional jump, while descent
+    // stays strictly greedy.
+    if (cfg.algo == SearchAlgo::HC_MCMC &&
+        since_improve >= std::max(1, cfg.hc_stall_limit)) {
+      st.cur = st.best;
+      for (int k = 0; k < std::max(1, cfg.hc_kick_mutations); k++) {
+        mutate_program(spec, st.cur.data(), L);
+      }
+      score(st.cur, st.cost, st.eq, st.perf);
+      new_best(st.cost, st.eq, st.perf, perf_insn_count(st.cur.data(), L));
+      since_improve = 0;
+    }
+
     std::vector<Insn> cand = st.cur;
     mutate_program(spec, cand.data(), L);
 
-    long long cand_eq = cost_eq_only(cand.data(), L, tests, spec.live_out);
-    long long cand_perf = perf_cost(cand.data(), L, spec.live_out, cfg);
-    long long cand_cost = cand_eq * 1000LL + cand_perf;
+    long long cand_eq, cand_perf, cand_cost;
+    score(cand, cand_cost, cand_eq, cand_perf);
     long long cand_insns = perf_insn_count(cand.data(), L);
 
     double delta = static_cast<double>(cand_cost) - static_cast<double>(st.cost);
     bool accept = false;
-    if (delta <= 0.0) {
-      accept = true;
+    if (cfg.algo == SearchAlgo::HC_MCMC) {
+      // Greedy hill climbing: no uphill moves, but equal-cost plateau moves
+      // are allowed so the walk can traverse flat regions.
+      accept = cand_cost <= st.cost;
     } else {
-      double prob = std::exp(-cfg.beta * delta);
-      if (urand(rng) < prob) accept = true;
+      double cur_beta = (cfg.algo == SearchAlgo::ADAPTIVE_MCMC) ? beta : cfg.beta;
+      if (delta <= 0.0) {
+        accept = true;
+      } else {
+        double prob = std::exp(-cur_beta * delta);
+        if (urand(rng) < prob) accept = true;
+      }
+      if (cfg.algo == SearchAlgo::ADAPTIVE_MCMC) {
+        window_proposals++;
+        if (accept) window_accepts++;
+        if (window_proposals >= std::max(1, cfg.adapt_window)) {
+          double rate = static_cast<double>(window_accepts) / window_proposals;
+          beta *= std::exp(cfg.adapt_gain * (rate - cfg.target_accept));
+          beta = std::clamp(beta, cfg.beta_min, cfg.beta_max);
+          window_proposals = 0;
+          window_accepts = 0;
+        }
+      }
     }
-    if (!accept) continue;
+
+    if (!accept) {
+      since_improve++;
+      continue;
+    }
 
     st.cur = std::move(cand);
     st.cost = cand_cost;
     st.eq = cand_eq;
     st.perf = cand_perf;
 
-    // Prefer a lower cost; break ties by instruction count so a cycle-cost run
-    // still reports the simplest program among equally fast bundles.
-    if (st.cost < st.best_cost ||
-        (st.cost == st.best_cost && cand_insns < st.best_insns)) {
-      st.best = st.cur;
-      st.best_cost = st.cost;
-      st.best_eq = st.eq;
-      st.best_perf = st.perf;
-      st.best_insns = cand_insns;
+    if (new_best(st.cost, st.eq, st.perf, cand_insns)) {
+      since_improve = 0;
+    } else {
+      since_improve++;
     }
   }
 }
 
 } // namespace
+
+const char* search_algo_name(SearchAlgo algo) {
+  switch (algo) {
+    case SearchAlgo::ADAPTIVE_MCMC: return "adaptive";
+    case SearchAlgo::HC_MCMC:       return "hc";
+    case SearchAlgo::MCMC:
+    default:                        return "mcmc";
+  }
+}
 
 MCMCResult run_mcmc(const ProgramSpec& spec, const std::vector<TestCase>& tests,
                     const MCMCConfig& cfg) {

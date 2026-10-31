@@ -128,6 +128,82 @@ Check each move is symmetric (all pick slot and values uniformly):
 Because all moves are symmetric, the Hastings ratio `q(x|x')/q(x'|x) = 1` and
 the simple `exp(−βΔ)` criterion is exact — no correction factor.
 
+### 3.1 Adaptive inverse temperature (`--algo adaptive`)
+
+Fixed `β` is target-dependent: a value that works for a 3-instruction block can
+be too hot or too cold for a 20-instruction one. Adaptive MCMC keeps the same
+symmetric proposal and the same Metropolis rule, but changes `β` online.
+
+Let `a_j` be the fraction of proposals accepted in window `j` (default window
+`W = 200`) and let `a*` be the target acceptance rate (`--target-accept`,
+default `0.234`). The implementation performs a bounded stochastic-
+approximation update in log-space:
+
+```text
+log β_{j+1} = log β_j + g · (a_j − a*)
+β_{j+1}     = clamp( β_{j+1}, β_min, β_max )
+```
+
+with gain `g = --adapt-gain` (default 1.0) and `β ∈ [10⁻³, 10³]`.
+
+Interpretation:
+
+- `a_j > a*` (chain accepts too much) → `β` increases → colder chain, more greed.
+- `a_j < a*` (chain rejects too much) → `β` decreases → hotter chain, more
+  exploration.
+- In expectation the update stops when `a_j = a*`; the window average damps
+  noise from the discrete cost surface.
+
+This is the Robbins–Monro-style adaptation of the inverse temperature. With a
+constant gain and a non-diminishing step it is a practical adaptive scheme, not
+a proof of exact stationarity; the clamp keeps it bounded. The proposals are
+still symmetric, so no Hastings correction is introduced.
+
+### 3.2 HC-MCMC (`--algo hc`)
+
+HC-MCMC is the `β → ∞` limit of the Metropolis rule:
+
+```text
+lim_{β→∞} min(1, exp(−βΔ)) = 1[Δ ≤ 0]
+```
+
+so the chain becomes greedy: it accepts a proposal iff
+`cost(x') ≤ cost(x)`. Equal-cost moves are kept, which lets the walk traverse
+plateaus instead of freezing immediately.
+
+Greedy descent alone is not ergodic. After `S = --hc-stall` iterations without
+a new best, the implementation performs a kick:
+
+```text
+x ← mutate^K( x_best )       (K = --hc-kick, default 4)
+```
+
+where `x_best` is the lowest-cost program visited so far and `mutate` is one
+uniform random mutator move. The kicked state is accepted unconditionally and
+greedy descent resumes. This is an iterated-local-search / random-restart
+hybrid, not a sampler: there is no detailed balance and no claim that the
+visited states follow `π`. The reported answer is still the best state ever
+visited.
+
+### 3.3 Enumerative search space (`--algo enum`)
+
+Enumeration tries every program of length `ℓ = 0, 1, …, L_max` over the
+register pool `R` and immediate pool `I`. For one slot the branching factor is
+approximately
+
+```text
+B ≈ Σ_{op ∈ R-format} R³  +  Σ_{op ∈ I-format} R²·|I|
+      +  Σ_{op ∈ shift} R²·32  +  Σ_{op ∈ U-format} R·|I|
+```
+
+so the unexplored space at depth `ℓ` is `Θ(B^ℓ)`. The implementation prunes
+dead writes (a written register must be live-out or read later) and
+canonicalises commutative operands, but those only remove a lower-order factor:
+growth is still exponential in the required program length. This is why
+enumeration is exact but has a hard practical breaking point around `ℓ = 3–4`;
+MCMC instead pays a fixed budget `O(iters · tests · L)`, independent of the
+depth of the solution it has to discover.
+
 ---
 
 ## 4. What the search is actually optimising
@@ -166,7 +242,36 @@ Z3 `QF_BV` tier of `architecture.md` §4.5.
 
 ---
 
-## 6. References and further reading
+## 6. How the benchmark measures "better"
+
+`tools/benchmark_search.py` compares the three strategies on targets whose
+optimum is known by construction. For each run it records:
+
+```text
+success(P)    = 1[ eq(P) = 0 ]                       (found a correct program)
+optimal(P)    = 1[ eq(P) = 0 ∧ #insns(P) = opt ]     (found the known optimum)
+time          = wall-clock seconds of that run
+```
+
+With `n` seeds, the reported success/optimality rates are
+`(1/n)·Σ success`, `(1/n)·Σ optimal`, and the timing is the median over seeds.
+Because the MCMC budget is fixed, its time grows with iteration count and
+buffer length; enumeration's time grows with the required optimum length.
+The crossing of those two curves defines the breaking points listed in
+[benchmark.md](benchmark.md).
+
+Formally, let `ℓ*` be the shortest correct program length and `L` the target
+buffer length. Enumeration costs `Θ(B^{ℓ*})`; one MCMC run costs
+`Θ(iters · tests · L)`. Thus:
+
+- small `ℓ*` → enumeration wins;
+- larger `ℓ*` or a hard length cap → MCMC wins;
+- very large `L` with a fixed iteration budget → both MCMC variants lose
+  reliability, while enumeration is still exact if `ℓ*` is small enough.
+
+---
+
+## 7. References and further reading
 
 - E. Metropolis et al., *Equation of State Calculations by Fast Computing
   Machines*, J. Chem. Phys. 21 (1953); W.K. Hastings, Biometrika 57 (1970) —

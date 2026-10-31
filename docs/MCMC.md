@@ -226,7 +226,7 @@ state n  [add t3,a0,a0 nop nop]     best kept = this    ← REPORTED
 Reported:
 
 ```
-best_cost=1 best_eq=0 best_perf=1 time=0.1196
+algo=mcmc best_cost=1 best_eq=0 best_perf=1 time=0.1196
 target program (3 insns):        add x6,x10,x11 / sub x7,x6,x11 / slli x28,x7,1
 optimized program (1 insn):      add x28,x10,x10
 verify: OK (probabilistic) fresh_rand_eq=0
@@ -234,14 +234,23 @@ verify: OK (probabilistic) fresh_rand_eq=0
 
 ---
 
-## 10. Advanced MCMC features (planned, not in this code)
+## 10. Advanced MCMC features (implemented and planned)
 
-STOKE and `architecture.md` describe refinements not yet implemented here:
+STOKE and `architecture.md` describe refinements; the current status is:
 
+- **Adaptive-temperature MCMC**: implemented as `--algo adaptive`. β is
+  adapted online to track `--target-accept`; the proposal distribution is
+  unchanged, so no Hastings correction is needed.
+- **HC-MCMC**: implemented as `--algo hc`. Greedy hill climbing (`Δ ≤ 0`) with
+  a stagnation-triggered kick from the incumbent best (`--hc-stall`,
+  `--hc-kick`). The measured comparison against adaptive MCMC and enumeration
+  is in [benchmark.md](benchmark.md).
 - **Two-phase search**: first run with `perf` weight 0 (find *any* correct
   program), then re-run with `perf` weight active, starting from the result.
+  Not implemented.
 - **Early exit**: draw `u` up front and cut evaluation of a candidate short as
   soon as `eq` already exceeds the threshold implied by `u` (a large speedup).
+  Not implemented.
 - **Threaded chains**: `--chains` runs independent chains today, but
   sequentially rather than in parallel threads.
 - **Regression-guided perf**: implemented as `--cost-mode 1` with a

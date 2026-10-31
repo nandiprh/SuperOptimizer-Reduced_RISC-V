@@ -168,14 +168,25 @@ see [math.md](math.md#why-no-proposal-ratio).
 ## `mcmc.hpp` / `mcmc.cpp` — the search driver
 
 ```cpp
+enum class SearchAlgo { MCMC, ADAPTIVE_MCMC, HC_MCMC };
+
 struct MCMCConfig { int max_iters; int chains; unsigned int seed; double beta;
                     int test_count; bool use_regression; int cost_mode;
-                    bool do_enum; int enum_max_len; bool do_z3;
-                    std::vector<Insn> init_prog; };
+                    bool do_enum; bool enum_only; int enum_max_len; bool do_z3;
+                    std::vector<Insn> init_prog;
+                    SearchAlgo algo;
+                    double target_accept, adapt_gain; int adapt_window;
+                    double beta_min, beta_max;
+                    int hc_stall_limit, hc_kick_mutations; };
 struct MCMCResult { std::vector<Insn> best_prog; long long best_cost, best_eq, best_perf; double time_sec; };
 
 MCMCResult run_mcmc(const ProgramSpec& spec, const std::vector<TestCase>& tests, const MCMCConfig& cfg);
 ```
+
+`algo` selects the acceptance rule inside one shared driver: fixed-β
+Metropolis, adaptive-β Metropolis, or greedy HC-MCMC with kicks. `run_mcmc`
+is still used for all three; enumeration is a separate driver
+(`enumerate_search`) that `main.cpp` calls when `enum_only` is set.
 
 `run_mcmc` runs one chain per `cfg.chains`, each seeded from
 `seed + chain_idx·constant` for both the mutator and the acceptance RNG, and

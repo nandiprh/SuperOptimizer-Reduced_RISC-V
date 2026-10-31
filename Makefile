@@ -27,7 +27,11 @@ dataset: tools/gen_dataset
 model: dataset
 	python3 tools/train_model.py --dataset results/dataset.csv --out src/model_data.hpp
 
+# Benchmark the three search strategies and locate their breaking points.
+bench-search: $(TARGET)
+	python3 tools/benchmark_search.py --budget 300000 --seeds 3 --out results/search_benchmark.csv
+
 clean:
 	rm -f $(OBJS) $(TARGET) tools/gen_dataset
 
-.PHONY: all clean dataset model
+.PHONY: all clean dataset model bench-search

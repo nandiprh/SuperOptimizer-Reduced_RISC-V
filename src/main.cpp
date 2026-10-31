@@ -79,33 +79,60 @@ static int run_and_report(const ProgramSpec& spec, const MCMCConfig& cfg) {
 
   int test_count = cfg.test_count > 0 ? cfg.test_count : 96;
   auto tests = gen_test_set(spec.code, spec.live_in, spec.live_out, test_count, true);
-  auto res = run_mcmc(spec, tests, cfg);
 
-  // --- Algorithm 2: Enumerative baseline (ground-truth optimum for short targets) ---
+  MCMCResult res;
   EnumerateResult enum_res;
-  if (cfg.do_enum) {
+  if (cfg.enum_only) {
+    // --- Algorithm 2 run as the search itself (not as a post-MCMC baseline) ---
     EnumerateConfig ecfg;
     ecfg.max_len = cfg.enum_max_len > 0 ? cfg.enum_max_len : 3;
-    ecfg.test_count = 96;
+    ecfg.test_count = test_count;
     ecfg.verify_survivors = false;
     enum_res = enumerate_search(spec, tests, ecfg);
+    res.best_prog = enum_res.best_prog;
+    res.best_cost = enum_res.best_cost;
+    res.best_eq = enum_res.best_eq;
+    res.best_perf = enum_res.best_perf;
+    res.time_sec = enum_res.time_sec;
+  } else {
+    res = run_mcmc(spec, tests, cfg);
+    // --- Algorithm 2 as an optional ground-truth baseline after MCMC ---
+    if (cfg.do_enum) {
+      EnumerateConfig ecfg;
+      ecfg.max_len = cfg.enum_max_len > 0 ? cfg.enum_max_len : 3;
+      ecfg.test_count = 96;
+      ecfg.verify_survivors = false;
+      enum_res = enumerate_search(spec, tests, ecfg);
+    }
   }
 
   long long target_perf = perf_insn_count(spec.code.data(), (int)spec.code.size());
   long long best_insns = perf_insn_count(res.best_prog.data(), (int)res.best_prog.size());
   auto insns_word = [](long long n) { return (n == 1 || n == -1) ? "insn" : "insns"; };
-  std::cout << "best_cost=" << res.best_cost << " best_eq=" << res.best_eq
+  const char* algo_label = cfg.enum_only ? "enum" : search_algo_name(cfg.algo);
+  std::cout << "algo=" << algo_label
+            << " best_cost=" << res.best_cost << " best_eq=" << res.best_eq
             << " best_perf=" << res.best_perf << " best_insns=" << best_insns
             << " time=" << res.time_sec << "\n";
   std::cout << "target program (" << target_perf << " " << insns_word(target_perf) << "):\n";
   for (const auto& insn : spec.code) {
     if (!is_nop(insn)) std::cout << "  " << format_insn(insn) << "\n";
   }
-  std::cout << "optimized program (" << best_insns << " " << insns_word(best_insns) << "):\n";
-  for (const auto& insn : res.best_prog) {
-    if (!is_nop(insn)) std::cout << "  " << format_insn(insn) << "\n";
+  if (cfg.enum_only && res.best_eq != 0) {
+    std::cout << "optimized program: none found within enum-max-len "
+              << cfg.enum_max_len << "\n";
+  } else {
+    std::cout << "optimized program (" << best_insns << " " << insns_word(best_insns) << "):\n";
+    for (const auto& insn : res.best_prog) {
+      if (!is_nop(insn)) std::cout << "  " << format_insn(insn) << "\n";
+    }
   }
-  if (cfg.do_enum) {
+  if (cfg.enum_only) {
+    std::cout << "enumerative tested=" << enum_res.programs_tested
+              << " enum_best_perf=" << enum_res.best_perf
+              << " enum_eq=" << enum_res.best_eq
+              << " enum_time=" << enum_res.time_sec << "\n";
+  } else if (cfg.do_enum) {
     std::cout << "enumerative tested=" << enum_res.programs_tested
               << " enum_best_perf=" << enum_res.best_perf
               << " enum_eq=" << enum_res.best_eq
@@ -285,6 +312,7 @@ static void print_usage(const char* prog) {
             << "  --chains C       accepted; only 1 chain runs today\n"
             << "  --seed S         RNG seed (default 12345)\n"
             << "  --cost-mode M    perf term: 0=insn count, 1=regression cycles, 2=bundled sim, 3=Tomasulo sim (default 0)\n"
+            << "  --algo A         search algorithm: mcmc | adaptive | hc | enum (default mcmc)\n"
             << "  --enum           run enumerative baseline for ground-truth optimum\n"
             << "  --enum-max-len N max length for enumerative search (default 3)\n"
             << "  --z3             Z3 QF_BV exact verification + counterexample loop\n"
@@ -311,8 +339,10 @@ int main(int argc, char** argv) {
   cfg.use_regression = false;
   cfg.cost_mode = 0;
   cfg.do_enum = false;
+  cfg.enum_only = false;
   cfg.enum_max_len = 3;
   cfg.do_z3 = false;
+  cfg.algo = SearchAlgo::MCMC;
 
   for (int i = 1; i < argc; i++) {
     std::string a = argv[i];
@@ -321,9 +351,22 @@ int main(int argc, char** argv) {
     else if (a == "--chains" && i + 1 < argc) chains = std::stoi(argv[++i]);
     else if (a == "--seed" && i + 1 < argc) seed = static_cast<unsigned int>(std::stoi(argv[++i]));
     else if ((a == "--expr" || a == "-e") && i + 1 < argc) expr = argv[++i];
+    else if (a == "--algo" && i + 1 < argc) {
+      std::string algo = argv[++i];
+      if (algo == "mcmc") cfg.algo = SearchAlgo::MCMC;
+      else if (algo == "adaptive" || algo == "adaptive-mcmc") cfg.algo = SearchAlgo::ADAPTIVE_MCMC;
+      else if (algo == "hc" || algo == "hc-mcmc") cfg.algo = SearchAlgo::HC_MCMC;
+      else if (algo == "enum" || algo == "enumerative") cfg.enum_only = true;
+      else { std::cerr << "unknown --algo " << algo << "\n"; print_usage(argv[0]); return 1; }
+    }
     else if (a == "--enum") cfg.do_enum = true;
     else if (a == "--enum-max-len" && i + 1 < argc) cfg.enum_max_len = std::stoi(argv[++i]);
     else if (a == "--z3") cfg.do_z3 = true;
+    else if (a == "--target-accept" && i + 1 < argc) cfg.target_accept = std::stod(argv[++i]);
+    else if (a == "--adapt-window" && i + 1 < argc) cfg.adapt_window = std::stoi(argv[++i]);
+    else if (a == "--adapt-gain" && i + 1 < argc) cfg.adapt_gain = std::stod(argv[++i]);
+    else if (a == "--hc-stall" && i + 1 < argc) cfg.hc_stall_limit = std::stoi(argv[++i]);
+    else if (a == "--hc-kick" && i + 1 < argc) cfg.hc_kick_mutations = std::stoi(argv[++i]);
     else if (a == "--cost-mode" && i + 1 < argc) cfg.cost_mode = std::stoi(argv[++i]);
     else if (!a.empty() && a[0] != '-' && fname.empty()) fname = a;
     else { print_usage(argv[0]); return 1; }
